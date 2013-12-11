@@ -51,8 +51,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\EPPlus.3.0.0.2\lib\net20\EPPlus.dll</HintPath>
     </Reference>
-    <Reference Include="Fasterflect, Version=2.1.0.8328, Culture=neutral, PublicKeyToken=38d18473284c1ca7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Fasterflect">
       <HintPath>..\..\packages\fasterflect.2.1.0\lib\net40\Fasterflect.dll</HintPath>
     </Reference>
     <Reference Include="ImageResizer, Version=3.3.3.123, Culture=neutral, processorArchitecture=MSIL">

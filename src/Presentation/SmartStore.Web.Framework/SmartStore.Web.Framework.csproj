@@ -73,9 +73,8 @@
     <Reference Include="EntityFramework">
       <HintPath>..\..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Fasterflect, Version=2.1.0.8328, Culture=neutral, PublicKeyToken=38d18473284c1ca7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\smartstorenet\src\packages\fasterflect.2.1.0\lib\net40\Fasterflect.dll</HintPath>
+    <Reference Include="Fasterflect">
+      <HintPath>..\..\packages\fasterflect.2.1.0\lib\net40\Fasterflect.dll</HintPath>
     </Reference>
     <Reference Include="FluentValidation, Version=3.4.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
