@@ -211,12 +211,12 @@ BEGIN
         UNION
         SELECT pv.ProductId
         FROM ProductVariant pv with (NOLOCK)
-        INNER JOIN ProductVariantAttributeCombination pvac with(NOLOCK) ON pvac.ProductVariantId = pv.Id
+        LEFT OUTER JOIN ProductVariantAttributeCombination pvac with(NOLOCK) ON pvac.ProductVariantId = pv.Id
         WHERE '
         IF @UseFullTextSearch = 1
-            SET @sql = @sql + 'CONTAINS((pv.[Sku], pvac.[Sku]), @Keywords) '
+            SET @sql = @sql + '(CONTAINS(pvac.[Sku], @Keywords) OR CONTAINS(pv.[Sku], @Keywords)) '
         ELSE
-            SET @sql = @sql + 'PATINDEX(@Keywords, pv.[Sku]) > 0 OR PATINDEX(@Keywords, pvac.[Sku]) > 0 '
+            SET @sql = @sql + 'PATINDEX(@Keywords, pvac.[Sku]) > 0 OR PATINDEX(@Keywords, pv.[Sku]) > 0 '
 
 
 		--localized product name
@@ -701,33 +701,39 @@ AS
 BEGIN
 	--create catalog
 	EXEC('
-	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE [name] = ''nopCommerceFullTextCatalog'')
-		CREATE FULLTEXT CATALOG [nopCommerceFullTextCatalog] AS DEFAULT')
+	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE [name] = ''SmartStoreNETFullTextCatalog'')
+		CREATE FULLTEXT CATALOG [SmartStoreNETFullTextCatalog] AS DEFAULT')
 	
 	--create indexes
 	DECLARE @create_index_text nvarchar(4000)
 	SET @create_index_text = '
 	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[Product]''))
 		CREATE FULLTEXT INDEX ON [Product]([Name], [ShortDescription], [FullDescription])
-		KEY INDEX [' + dbo.[nop_getprimarykey_indexname] ('Product') +  '] ON [nopCommerceFullTextCatalog] WITH CHANGE_TRACKING AUTO'
+		KEY INDEX [' + dbo.[sm_getprimarykey_indexname] ('Product') +  '] ON [SmartStoreNETFullTextCatalog] WITH CHANGE_TRACKING AUTO'
 	EXEC(@create_index_text)
 	
 	SET @create_index_text = '
 	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[ProductVariant]''))
 		CREATE FULLTEXT INDEX ON [ProductVariant]([Name], [Description], [SKU])
-		KEY INDEX [' + dbo.[nop_getprimarykey_indexname] ('ProductVariant') +  '] ON [nopCommerceFullTextCatalog] WITH CHANGE_TRACKING AUTO'
+		KEY INDEX [' + dbo.[sm_getprimarykey_indexname] ('ProductVariant') +  '] ON [SmartStoreNETFullTextCatalog] WITH CHANGE_TRACKING AUTO'
+	EXEC(@create_index_text)
+
+	SET @create_index_text = '
+	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[ProductVariantAttributeCombination]''))
+		CREATE FULLTEXT INDEX ON [ProductVariantAttributeCombination]([SKU])
+		KEY INDEX [' + dbo.[sm_getprimarykey_indexname] ('ProductVariantAttributeCombination') +  '] ON [SmartStoreNETFullTextCatalog] WITH CHANGE_TRACKING AUTO'
 	EXEC(@create_index_text)
 
 	SET @create_index_text = '
 	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[LocalizedProperty]''))
 		CREATE FULLTEXT INDEX ON [LocalizedProperty]([LocaleValue])
-		KEY INDEX [' + dbo.[nop_getprimarykey_indexname] ('LocalizedProperty') +  '] ON [nopCommerceFullTextCatalog] WITH CHANGE_TRACKING AUTO'
+		KEY INDEX [' + dbo.[sm_getprimarykey_indexname] ('LocalizedProperty') +  '] ON [SmartStoreNETFullTextCatalog] WITH CHANGE_TRACKING AUTO'
 	EXEC(@create_index_text)
 
 	SET @create_index_text = '
 	IF NOT EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[ProductTag]''))
 		CREATE FULLTEXT INDEX ON [ProductTag]([Name])
-		KEY INDEX [' + dbo.[nop_getprimarykey_indexname] ('ProductTag') +  '] ON [nopCommerceFullTextCatalog] WITH CHANGE_TRACKING AUTO'
+		KEY INDEX [' + dbo.[sm_getprimarykey_indexname] ('ProductTag') +  '] ON [SmartStoreNETFullTextCatalog] WITH CHANGE_TRACKING AUTO'
 	EXEC(@create_index_text)
 END
 GO
@@ -747,6 +753,11 @@ BEGIN
 	IF EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[ProductVariant]''))
 		DROP FULLTEXT INDEX ON [ProductVariant]
 	')
+	
+	EXEC('
+	IF EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[ProductVariantAttributeCombination]''))
+		DROP FULLTEXT INDEX ON [ProductVariantAttributeCombination]
+	')
 
 	EXEC('
 	IF EXISTS (SELECT 1 FROM sys.fulltext_indexes WHERE object_id = object_id(''[LocalizedProperty]''))
@@ -760,8 +771,8 @@ BEGIN
 
 	--drop catalog
 	EXEC('
-	IF EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE [name] = ''nopCommerceFullTextCatalog'')
-		DROP FULLTEXT CATALOG [nopCommerceFullTextCatalog]
+	IF EXISTS (SELECT 1 FROM sys.fulltext_catalogs WHERE [name] = ''SmartStoreNETFullTextCatalog'')
+		DROP FULLTEXT CATALOG [SmartStoreNETFullTextCatalog]
 	')
 END
 GO
