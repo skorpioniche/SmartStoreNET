@@ -42,7 +42,7 @@
 				var isLastCategory = cat.Id == Model.Id;
                 <li>
                     @if (isLastCategory) {
-                        <li>@cat.Name</li>
+                        @cat.Name
 					}
 					else {
                         <a href="@Url.RouteUrl("Category", new { SeName = cat.SeName })" title="@cat.Name">@cat.Name</a>
