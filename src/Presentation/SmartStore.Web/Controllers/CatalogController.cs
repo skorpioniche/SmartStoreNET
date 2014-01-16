@@ -1646,6 +1646,7 @@ namespace SmartStore.Web.Controllers
                 ctx.OrderBy = ProductSortingEnum.Position;
                 ctx.PageSize = int.MaxValue;
 				ctx.StoreId = _storeContext.CurrentStoreIdIfMultiStoreMode;
+                ctx.Origin = categoryId.ToString();
 
                 var featuredProducts = _productService.SearchProducts(ctx);
 
@@ -1696,6 +1697,7 @@ namespace SmartStore.Web.Controllers
                 ctx2.PageSize = command.PageSize;
                 ctx2.LoadFilterableSpecificationAttributeOptionIds = true;
 				ctx2.StoreId = _storeContext.CurrentStoreIdIfMultiStoreMode;
+                ctx2.Origin = categoryId.ToString();
 
                 var products = _productService.SearchProducts(ctx2);
 

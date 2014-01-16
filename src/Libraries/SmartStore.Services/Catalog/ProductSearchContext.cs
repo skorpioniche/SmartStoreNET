@@ -109,5 +109,12 @@ namespace SmartStore.Services.Catalog
 		/// Store identifier; 0 to load all records
 		/// </summary>
 		public int StoreId { get; set; }
+
+        /// <summary>
+        /// Any value indicating the origin of the search request,
+        /// e.g. the category id, if the caller is is a category page.
+        /// Can be useful in customization scenarios.
+        /// </summary>
+        public string Origin { get; set; }
     }
 }
