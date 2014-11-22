@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Common
 {
-	public partial class AddressValidator : AbstractValidator<AddressModel>
+    public class AddressValidator : AbstractValidator<AddressModel>
     {
         public AddressValidator(ILocalizationService localizationService)
         {

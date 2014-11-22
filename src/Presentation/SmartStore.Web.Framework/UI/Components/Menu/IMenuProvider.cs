@@ -5,18 +5,11 @@ using SmartStore.Collections;
 
 namespace SmartStore.Web.Framework.UI
 {
-
-	/// <summary>
-	/// Enables (plugins) developers to inject menu items to menus
-	/// </summary>
-	public interface IMenuProvider : IOrdered
+    
+    public interface IMenuProvider
     {
-        void BuildMenu(TreeNode<MenuItem> rootNode);
+        void BuildMenu(TreeNode<MenuItem> pluginsNode);
 
-		/// <summary>
-		/// Gets the menu name to inject the menu items into (e.g. admin, catalog etc.)
-		/// </summary>
-		string MenuName { get; }
     }
 
 }

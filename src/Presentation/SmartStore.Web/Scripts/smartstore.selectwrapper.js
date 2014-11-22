@@ -152,7 +152,7 @@
                     $.each(lists[url], function () {
                         var o = $(document.createElement('option'))
                                     .attr('value', this.id)
-                                    .text(this.text || this.name)
+                                    .text(this.text)
                                     .appendTo(sel);
                         if (this.selected) {
                             o.attr("selected", "selected");

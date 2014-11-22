@@ -38,8 +38,7 @@ namespace SmartStore.Web.Controllers
 
 		#region Constructors
 
-        public ReturnRequestController(
-			IOrderService orderService,
+        public ReturnRequestController(IOrderService orderService,
 			IWorkContext workContext, IStoreContext storeContext,
             ICurrencyService currencyService, IPriceFormatter priceFormatter,
             IOrderProcessingService orderProcessingService,
@@ -136,7 +135,7 @@ namespace SmartStore.Web.Controllers
         [RequireHttpsByConfigAttribute(SslRequirement.Yes)]
         public ActionResult ReturnRequest(int orderId)
         {
-			var order = _orderService.GetOrderById(orderId);
+            var order = _orderService.GetOrderById(orderId);
             if (order == null || order.Deleted || _workContext.CurrentCustomer.Id != order.CustomerId)
                 return new HttpUnauthorizedResult();
 
@@ -148,7 +147,7 @@ namespace SmartStore.Web.Controllers
             return View(model);
         }
 
-        [HttpPost, ActionName("ReturnRequest")] 
+        [HttpPost, ActionName("ReturnRequest")]
         [ValidateInput(false)]
         public ActionResult ReturnRequestSubmit(int orderId, SubmitReturnRequestModel model, FormCollection form)
         {

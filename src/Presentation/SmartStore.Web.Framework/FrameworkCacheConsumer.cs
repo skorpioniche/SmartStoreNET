@@ -11,6 +11,7 @@ using SmartStore.Core.Domain.Themes;
 using SmartStore.Core.Events;
 using SmartStore.Core.Infrastructure;
 using SmartStore.Core.Themes;
+using SmartStore.Web.Framework.Events;
 
 namespace SmartStore.Web.Framework
 {
@@ -28,7 +29,7 @@ namespace SmartStore.Web.Framework
         IConsumer<EntityUpdated<Language>>,
         IConsumer<EntityDeleted<Language>>,
         IConsumer<EntityUpdated<Setting>>,
-		IConsumer<ThemeTouchedEvent>
+		IConsumer<ThemeTouched>
     {
 
         /// <summary>
@@ -78,7 +79,7 @@ namespace SmartStore.Web.Framework
 			_aspCache.Remove(BuildThemeVarsCacheKey(eventMessage.Entity));
         }
 
-		public void HandleEvent(ThemeTouchedEvent eventMessage)
+		public void HandleEvent(ThemeTouched eventMessage)
 		{
 			var cacheKey = BuildThemeVarsCacheKey(eventMessage.ThemeName, 0);
 			_aspCache.RemoveByPattern(cacheKey);

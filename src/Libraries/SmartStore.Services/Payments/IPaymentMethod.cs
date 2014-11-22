@@ -9,7 +9,7 @@ namespace SmartStore.Services.Payments
     /// <summary>
     /// Provides an interface for creating payment gateways and methods
     /// </summary>
-    public partial interface IPaymentMethod : IProvider, IUserEditable
+    public partial interface IPaymentMethod : IPlugin
     {
         #region Methods
 
@@ -28,8 +28,7 @@ namespace SmartStore.Services.Payments
         ProcessPaymentResult ProcessPayment(ProcessPaymentRequest processPaymentRequest);
 
         /// <summary>
-		/// Post process payment (e.g. used by payment gateways to redirect to a third-party URL).
-		/// Called after an order has been placed or when customer re-post the payment.
+        /// Post process payment (used by payment gateways that require redirecting to a third-party URL)
         /// </summary>
         /// <param name="postProcessPaymentRequest">Payment info required for an order processing</param>
         void PostProcessPayment(PostProcessPaymentRequest postProcessPaymentRequest);
@@ -84,6 +83,14 @@ namespace SmartStore.Services.Payments
         bool CanRePostProcessPayment(Order order);
 
         /// <summary>
+        /// Gets a route for provider configuration
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <param name="controllerName">Controller name</param>
+        /// <param name="routeValues">Route values</param>
+        void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues);
+
+        /// <summary>
         /// Gets a route for payment info
         /// </summary>
         /// <param name="actionName">Action name</param>
@@ -91,17 +98,22 @@ namespace SmartStore.Services.Payments
         /// <param name="routeValues">Route values</param>
         void GetPaymentInfoRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues);
 
+		///// <summary>
+		///// Gets a route for the payment info handler controller action
+		///// </summary>
+		///// <param name="order">Order</param>
+		///// <returns>Result</returns>
+		///// <remarks>
+		///// The defined route is being redirected to during the checkout process > PaymentInfo page.
+		///// Implementors should return <c>null</c> if no redirection occurs.
+		///// </remarks>
+		RouteInfo GetPaymentInfoHandlerRoute();
+
         Type GetControllerType();
 
         #endregion
 
         #region Properties
-
-		/// <summary>
-		/// Gets a value indicating whether the payment method requires user input
-		/// before proceeding (e.g. CreditCard, DirectDebit etc.)
-		/// </summary>
-		bool RequiresInteraction { get; }
 
         /// <summary>
         /// Gets a value indicating whether capture is supported

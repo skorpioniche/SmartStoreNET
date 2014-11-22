@@ -23,7 +23,6 @@ using SmartStore.Services.Orders;
 using SmartStore.Services.Payments;
 using System.Globalization;
 using SmartStore.Services.Stores;
-using System.Web;
 
 namespace SmartStore.Services.Common
 {
@@ -717,7 +716,6 @@ namespace SmartStore.Services.Common
                         .Where(on => on.DisplayToCustomer)
                         .OrderByDescending(on => on.CreatedOnUtc)
                         .ToList();
-
                     if (orderNotes.Count > 0)
                     {
                         doc.Add(new Paragraph(_localizationService.GetResource("PDFInvoice.OrderNotes", lang.Id), titleFont));
@@ -747,11 +745,8 @@ namespace SmartStore.Services.Common
                             cell.HorizontalAlignment = Element.ALIGN_LEFT;
                             notesTable.AddCell(cell);
 
-							string orderNoteText = HtmlUtils.ConvertHtmlToPlainText(orderNote.FormatOrderNoteText(), true, true);
-							orderNoteText = HtmlUtils.StripTags(HttpUtility.HtmlDecode(orderNoteText));
-
                             cell = new PdfPCell();
-                            cell.AddElement(new Paragraph(orderNoteText, font));
+                            cell.AddElement(new Paragraph(HtmlUtils.ConvertHtmlToPlainText(orderNote.FormatOrderNoteText(), true, true), font));
                             cell.HorizontalAlignment = Element.ALIGN_LEFT;
                             notesTable.AddCell(cell);
                         }

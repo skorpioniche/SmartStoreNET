@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Affiliates
 {
-    public partial class AffiliateValidator : AbstractValidator<AffiliateModel>
+    public class AffiliateValidator : AbstractValidator<AffiliateModel>
     {
         public AffiliateValidator(ILocalizationService localizationService)
         {

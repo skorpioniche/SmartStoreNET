@@ -7,10 +7,10 @@ namespace SmartStore.Services.Filter
 {
 	public partial interface IFilterService
 	{
+		bool IncludeFeatured { get; }
+
 		List<FilterCriteria> Deserialize(string jsonData);
 		string Serialize(List<FilterCriteria> criteria);
-
-		FilterProductContext CreateFilterProductContext(string filter, int categoryID, string path, int? pagesize, int? orderby, string viewmode);
 
 		bool ToWhereClause(FilterSql context);
 		bool ToWhereClause(FilterSql context, List<FilterCriteria> findIn, Predicate<FilterCriteria> match);

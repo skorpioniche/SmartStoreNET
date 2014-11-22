@@ -348,11 +348,8 @@ namespace SmartStore.Core.Domain.Orders
         /// </summary>
         public string DirectDebitIban { get; set; }
 
-        /// <summary>
-        /// Gets or sets the customer order comment
-        /// </summary>
-        public string CustomerOrderComment { get; set; }
-
+        /// codehint:sm-add end
+        
         /// <summary>
         /// Gets or sets the authorization transaction identifier
         /// </summary>

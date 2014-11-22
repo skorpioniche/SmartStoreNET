@@ -32,11 +32,7 @@ namespace SmartStore.Data
         {
             get
             {
-				if (_context.ForceNoTracking)
-				{
-					return this.Entities.AsNoTracking();
-				}
-				return this.Entities;
+                return this.Entities;
             }
         }
 
@@ -76,7 +72,7 @@ namespace SmartStore.Data
                 if (entities == null)
                     throw new ArgumentNullException("entities");
 
-                if (entities.Any())
+                if (entities.HasItems())
                 {
                     if (batchSize <= 0)
                     {

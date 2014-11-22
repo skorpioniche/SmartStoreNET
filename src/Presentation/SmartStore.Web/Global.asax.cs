@@ -1,26 +1,35 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
-using System.Web;
+using System.Threading;
 using System.Web.Hosting;
 using System.Web.Mvc;
-using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.WebPages;
+using System.Web.Optimization;
 using FluentValidation.Mvc;
 using SmartStore.Core;
 using SmartStore.Core.Data;
-using SmartStore.Core.Events;
+using SmartStore.Core.Domain;
 using SmartStore.Core.Infrastructure;
 using SmartStore.Core.Logging;
 using SmartStore.Services.Tasks;
-using SmartStore.Web.Controllers;
-using SmartStore.Web.Framework.Controllers;
+using SmartStore.Web.Framework;
 using SmartStore.Web.Framework.Mvc;
 using SmartStore.Web.Framework.Mvc.Bundles;
 using SmartStore.Web.Framework.Mvc.Routes;
-using SmartStore.Web.Framework.Plugins;
 using SmartStore.Web.Framework.Themes;
-using SmartStore.Web.Framework.Validators;
+using SmartStore.Core.Events;
+using System.Web; 
+using SmartStore.Core.Domain.Themes;
+using SmartStore.Core.Infrastructure.DependencyManagement;
+using Autofac;
+using Autofac.Integration.Mvc;
+using System.IO;
+using System.Diagnostics;
+using SmartStore.Web.Framework.Plugins;
+using SmartStore.Web.Framework.Controllers;
+using SmartStore.Web.Framework.Validators; 
 
 
 namespace SmartStore.Web
@@ -41,14 +50,23 @@ namespace SmartStore.Web
 
 		public static void RegisterRoutes(RouteCollection routes, bool databaseInstalled = true)
         {
-			//routes.IgnoreRoute("favicon.ico");
+            routes.IgnoreRoute("favicon.ico");
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-			routes.IgnoreRoute("{resource}.ashx/{*pathInfo}");
 			routes.IgnoreRoute(".db/{*virtualpath}");
 
-			// register routes (core, admin, plugins, etc)
-			var routePublisher = EngineContext.Current.Resolve<IRoutePublisher>();
-			routePublisher.RegisterRoutes(routes);
+			if (databaseInstalled)
+			{
+				// register custom routes (plugins, etc)
+				var routePublisher = EngineContext.Current.Resolve<IRoutePublisher>();
+				routePublisher.RegisterRoutes(routes);
+			}
+            
+            routes.MapRoute(
+                "Default", // Route name
+                "{controller}/{action}/{id}", // URL with parameters
+                new { controller = "Home", action = "Index", id = UrlParameter.Optional },
+                new[] { "SmartStore.Web.Controllers" }
+            );
         }
 
         public static void RegisterBundles(BundleCollection bundles)
@@ -98,13 +116,13 @@ namespace SmartStore.Web
 				ViewEngines.Engines.Add(new ThemeableRazorViewEngine());
 
 				// Global filters
-				RegisterGlobalFilters(GlobalFilters.Filters); 
+				RegisterGlobalFilters(GlobalFilters.Filters);
 				
 				// Bundles
 				RegisterBundles(BundleTable.Bundles);
 
-				// register virtual path provider for theming (file inheritance & variables handling)
-				HostingEnvironment.RegisterVirtualPathProvider(new ThemingVirtualPathProvider(HostingEnvironment.VirtualPathProvider));
+				// register virtual path provider for theme variables
+				HostingEnvironment.RegisterVirtualPathProvider(new ThemeVarsVirtualPathProvider(HostingEnvironment.VirtualPathProvider));
 				BundleTable.VirtualPathProvider = HostingEnvironment.VirtualPathProvider;
 
 				// register plugin debug view virtual path provider
@@ -159,89 +177,35 @@ namespace SmartStore.Web
             return base.GetVaryByCustomString(context, custom);
         }
 		
-
-        protected void Application_Error(object sender, EventArgs e)
+        protected void Application_AuthenticateRequest(object sender, EventArgs e)
         {
-			var exception = Server.GetLastError();
-
-			// TODO: make a setting and don't log error 404 if set
-			LogException(exception);
-			
-			var httpException = exception as HttpException;
-
-			// don't return 404 view if a static resource was requested
-			if (httpException != null && httpException.GetHttpCode() == 404 && WebHelper.IsStaticResourceRequested(Request))
-				return;
-
-			var httpContext = ((MvcApplication)sender).Context;
-
-			var currentController = " ";
-			var currentAction = " ";
-			var currentRouteData = RouteTable.Routes.GetRouteData(new HttpContextWrapper(httpContext));
-
-			if (currentRouteData != null)
-			{
-				if (currentRouteData.Values["controller"] != null && !String.IsNullOrEmpty(currentRouteData.Values["controller"].ToString()))
-					currentController = currentRouteData.Values["controller"].ToString();
-				if (currentRouteData.Values["action"] != null && !String.IsNullOrEmpty(currentRouteData.Values["action"].ToString()))
-					currentAction = currentRouteData.Values["action"].ToString();
-			}
-
-			var errorController = new ErrorController();
-			var routeData = new RouteData();
-			var errorAction = "Index";
-
-			if (httpException != null)
-			{
-				switch (httpException.GetHttpCode())
-				{
-					case 404:
-						errorAction = "NotFound";
-						break;
-					// TODO: more?
-				}
-			}			
-
-			var statusCode = httpException != null ? httpException.GetHttpCode() : 500;
-
-			// don't return error view if custom errors are disabled (in debug mode)
-			if (statusCode == 500 && !httpContext.IsCustomErrorEnabled)
-				return;
-
-			httpContext.ClearError();
-			httpContext.Response.Clear();
-			httpContext.Response.StatusCode = statusCode;
-			httpContext.Response.TrySkipIisCustomErrors = true;
-
-			routeData.Values["controller"] = "Error";
-			routeData.Values["action"] = errorAction;
-
-			errorController.ViewData.Model = new HandleErrorInfo(exception, currentController, currentAction);
-			((IController)errorController).Execute(new RequestContext(new HttpContextWrapper(httpContext), routeData));
+            // [...]
         }
 
-        protected void LogException(Exception exception)
+        protected void Application_Error(Object sender, EventArgs e)
         {
-            if (exception == null)
+            //disable compression (if enabled). More info - http://stackoverflow.com/questions/3960707/asp-net-mvc-weird-characters-in-error-page
+            //log error
+            LogException(Server.GetLastError());
+        }
+
+        protected void LogException(Exception exc)
+        {
+            if (exc == null)
                 return;
             
             if (!DataSettings.DatabaseIsInstalled())
                 return;
-
-			//// ignore 404 HTTP errors
-			//var httpException = exception as HttpException;
-			//if (httpException != null && httpException.GetHttpCode() == 404)
-			//	return;
-
+            
             try
             {
                 var logger = EngineContext.Current.Resolve<ILogger>();
                 var workContext = EngineContext.Current.Resolve<IWorkContext>();
-                logger.Error(exception.Message, exception, workContext.CurrentCustomer);
+                logger.Error(exc.Message, exc, workContext.CurrentCustomer);
             }
-            catch
+            catch (Exception)
             {
-                // don't throw new exception
+                //don't throw new exception if occurs
             }
         }
 

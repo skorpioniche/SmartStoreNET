@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Text;
+using System.Threading.Tasks;
 using SmartStore.Core;
 using SmartStore.Core.Domain.Stores;
 using SmartStore.Services.Stores;
@@ -12,88 +14,15 @@ namespace SmartStore.Web.Framework
 	/// </summary>
 	public partial class WebStoreContext : IStoreContext
 	{
-		internal const string OverriddenStoreIdKey = "OverriddenStoreId";
-		
 		private readonly IStoreService _storeService;
 		private readonly IWebHelper _webHelper;
-		private readonly HttpContextBase _httpContext;
 
-		private Store _currentStore;
+		private Store _cachedStore;
 
-		public WebStoreContext(IStoreService storeService, IWebHelper webHelper, HttpContextBase httpContext)
+		public WebStoreContext(IStoreService storeService, IWebHelper webHelper)
 		{
 			this._storeService = storeService;
 			this._webHelper = webHelper;
-			this._httpContext = httpContext;
-		}
-
-		public void SetRequestStore(int? storeId)
-		{
-			try
-			{
-				var dataTokens = _httpContext.Request.RequestContext.RouteData.DataTokens;
-				if (storeId.GetValueOrDefault() > 0)
-				{
-					dataTokens[OverriddenStoreIdKey] = storeId.Value;
-				}
-				else if (dataTokens.ContainsKey(OverriddenStoreIdKey))
-				{
-					dataTokens.Remove(OverriddenStoreIdKey);
-				}
-
-				_currentStore = null;
-			}
-			catch { }
-		}
-
-		public int? GetRequestStore()
-		{
-			try
-			{
-				var value = _httpContext.Request.RequestContext.RouteData.DataTokens[OverriddenStoreIdKey];
-				if (value != null)
-				{
-					return (int)value;
-				}
-
-				return null;
-			}
-			catch
-			{
-				return null;
-			}
-		}
-
-		public void SetPreviewStore(int? storeId)
-		{
-			try
-			{
-				_httpContext.SetPreviewModeValue(OverriddenStoreIdKey, storeId.HasValue ? storeId.Value.ToString() : null);
-				_currentStore = null;
-			}
-			catch { }
-		}
-
-		public int? GetPreviewStore()
-		{
-			try
-			{
-				var cookie = _httpContext.GetPreviewModeCookie(false);
-				if (cookie != null)
-				{
-					var value = cookie.Values[OverriddenStoreIdKey];
-					if (value.HasValue())
-					{
-						return value.ToInt();
-					}
-				}
-
-				return null;
-			}
-			catch
-			{
-				return null;
-			}
 		}
 
 		/// <summary>
@@ -102,38 +31,25 @@ namespace SmartStore.Web.Framework
 		public Store CurrentStore
 		{
 			get
-			{	
-				if (_currentStore == null)
+			{
+				if (_cachedStore != null)
+					return _cachedStore;
+
+				//ty to determine the current store by HTTP_HOST
+				var host = _webHelper.ServerVariables("HTTP_HOST");
+				var allStores = _storeService.GetAllStores();
+				var store = allStores.FirstOrDefault(s => s.ContainsHostValue(host));
+
+				if (store == null)
 				{
-					int? storeOverride = GetRequestStore() ?? GetPreviewStore();
-					if (storeOverride.HasValue)
-					{
-						// the store to be used can be overwritten on request basis (e.g. for theme preview, editing etc.)
-						_currentStore = _storeService.GetStoreById(storeOverride.Value);
-					}
-					else
-					{
-						// ty to determine the current store by HTTP_HOST
-						var host = _webHelper.ServerVariables("HTTP_HOST");
-						var allStores = _storeService.GetAllStores();
-						var store = allStores.FirstOrDefault(s => s.ContainsHostValue(host));
-
-						if (store == null)
-						{
-							//load the first found store
-							store = allStores.FirstOrDefault();
-						}
-
-						if (store == null)
-						{
-							throw new Exception("No store could be loaded");
-						}
-
-						_currentStore = store;
-					}
+					//load the first found store
+					store = allStores.FirstOrDefault();
 				}
+				if (store == null)
+					throw new Exception("No store could be loaded");
 
-				return _currentStore;
+				_cachedStore = store;
+				return _cachedStore;
 			}
 		}
 

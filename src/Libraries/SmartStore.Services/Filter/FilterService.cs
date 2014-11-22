@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Linq.Dynamic;
 using System.Text;
 using Newtonsoft.Json;
-using SmartStore.Core;
-using SmartStore.Core.Data;
 using SmartStore.Core.Domain.Catalog;
 using SmartStore.Core.Infrastructure;
 using SmartStore.Services.Catalog;
+using System.Linq.Dynamic;
+using SmartStore.Core.Data;
+using System.Globalization;
+using SmartStore.Core;
 using SmartStore.Utilities;
 
 namespace SmartStore.Services.Filter
@@ -21,30 +21,30 @@ namespace SmartStore.Services.Filter
 		private readonly IProductService _productService;
 		private readonly ICategoryService _categoryService;
 		private readonly IStoreContext _storeContext;
-		private readonly CatalogSettings _catalogSettings;
-		private readonly IRepository<Product> _productRepository;
-		private readonly IRepository<ProductCategory> _productCategoryRepository;
-
 		private IQueryable<Product> _products;
+		private bool? _includeFeatured;
 
-		public FilterService(IProductService productService,
-			ICategoryService categoryService,
-			IStoreContext storeContext,
-			CatalogSettings catalogSettings,
-			IRepository<Product> productRepository,
-			IRepository<ProductCategory> productCategoryRepository)
+		public FilterService(IProductService productService, ICategoryService categoryService, IStoreContext storeContext)
 		{
 			_productService = productService;
 			_categoryService = categoryService;
 			_storeContext = storeContext;
-			_catalogSettings = catalogSettings;
-			_productRepository = productRepository;
-			_productCategoryRepository = productCategoryRepository;
 		}
 
 		public static int MaxDisplayCriteria { get { return 4; } }
+
 		public static string ShortcutPrice { get { return "_Price"; } }
 		public static string ShortcutSpecAttribute { get { return "_SpecId"; } }
+
+		public bool IncludeFeatured
+		{
+			get
+			{
+				if (_includeFeatured == null)
+					_includeFeatured = EngineContext.Current.Resolve<CatalogSettings>().IncludeFeaturedProductsInNormalLists;
+				return _includeFeatured ?? false;
+			}
+		}
 
 		// helper
 		private string ValidateValue(string value, string alternativeValue)
@@ -158,43 +158,13 @@ namespace SmartStore.Services.Filter
 			{
 				var searchContext = new ProductSearchContext()
 				{
-					FeaturedProducts = _catalogSettings.IncludeFeaturedProductsInNormalLists,
+					CategoryIds = categoryIds,
+					FeaturedProducts = IncludeFeatured,
 					StoreId = _storeContext.CurrentStoreIdIfMultiStoreMode,
 					VisibleIndividuallyOnly = true
 				};
 
-				if (categoryIds != null && categoryIds.Count > 1)
-				{
-					_products = _productService.PrepareProductSearchQuery(searchContext);
-
-					var distinctIds = (
-						from p in _productRepository.TableUntracked
-						join pc in _productCategoryRepository.TableUntracked on p.Id equals pc.ProductId
-						where categoryIds.Contains(pc.CategoryId)
-						select p.Id).Distinct();
-
-					_products =
-						from p in _products
-						join x in distinctIds on p.Id equals x
-						select p;
-				}
-				else
-				{
-					searchContext.CategoryIds = categoryIds;
-
-					_products = _productService.PrepareProductSearchQuery(searchContext);
-				}
-
-				//string.Join(", ", distinctIds.ToList()).Dump();
-
-				//_products
-				//	.Select(x => new { x.Id, x.Name })
-				//	.ToList()
-				//	.ForEach(x => {
-				//		"{0} {1}".FormatWith(x.Id, x.Name).Dump();
-				//	});
-
-				//_products.ToString().Dump(true);
+				_products = _productService.PrepareProductSearchQuery(searchContext);
 			}
 			return _products;
 		}
@@ -244,7 +214,7 @@ namespace SmartStore.Services.Filter
 		}
 		private List<FilterCriteria> ProductFilterableManufacturer(FilterProductContext context, bool getAll = false)
 		{
-			bool includeFeatured = _catalogSettings.IncludeFeaturedProductsInNormalLists;
+			bool includeFeatured = IncludeFeatured;
 			var query = ProductFilter(context);
 
 			var manus =
@@ -336,30 +306,6 @@ namespace SmartStore.Services.Filter
 			if (criteria != null && criteria.Count > 0)
 				return JsonConvert.SerializeObject(criteria);
 			return "";
-		}
-
-		public virtual FilterProductContext CreateFilterProductContext(string filter, int categoryID, string path, int? pagesize, int? orderby, string viewmode)
-		{
-			var context = new FilterProductContext()
-			{
-				Filter = filter,
-				ParentCategoryID = categoryID,
-				CategoryIds = new List<int> { categoryID },
-				Path = path,
-				PageSize = pagesize ?? 12,
-				ViewMode = viewmode,
-				OrderBy = orderby,
-				Criteria = Deserialize(filter)
-			};
-
-			if (_catalogSettings.ShowProductsFromSubcategories)
-			{
-				context.CategoryIds.AddRange(
-					_categoryService.GetAllCategoriesByParentCategoryId(categoryID).Select(x => x.Id)
-				);
-			}
-
-			return context;
 		}
 
 		public virtual bool ToWhereClause(FilterSql context)
@@ -457,17 +403,15 @@ namespace SmartStore.Services.Filter
 			// manufacturer
 			if (ToWhereClause(sql, context.Criteria, c => !c.IsInactive && c.Entity == "Manufacturer"))
 			{
-				bool includeFeatured = _catalogSettings.IncludeFeaturedProductsInNormalLists;
+				bool includeFeatured = IncludeFeatured;
 
-				var pmq =
+				var pmq = (
 					from p in query
 					from pm in p.ProductManufacturers
 					where (!includeFeatured || includeFeatured == pm.IsFeaturedProduct) && !pm.Manufacturer.Deleted
-					select pm;
+					select pm).Where(sql.WhereClause.ToString(), sql.Values.ToArray());
 
-				query = pmq
-					.Where(sql.WhereClause.ToString(), sql.Values.ToArray())
-					.Select(pm => pm.Product);
+				query = pmq.Select(pm => pm.Product);
 			}
 
 			// specification attribute
@@ -487,7 +431,7 @@ namespace SmartStore.Services.Filter
 
 				var specRepository = EngineContext.Current.Resolve<IRepository<ProductSpecificationAttribute>>();
 
-				var saq = specRepository.TableUntracked
+				var saq = specRepository.Table
 					.Where(a => a.AllowFiltering)
 					.Where(sql.WhereClause.ToString(), sql.Values.ToArray())
 					.GroupBy(a => a.ProductId)
@@ -523,7 +467,8 @@ namespace SmartStore.Services.Filter
 					break;
 			}
 
-			// distinct cause same products can be mapped to sub-categories... too slow
+
+			// distinct (required?)
 			//query =
 			//	from p in query
 			//	group p by p.Id into grp

@@ -66,30 +66,6 @@ namespace SmartStore.Web.Framework.UI
             set;
         }
 
-		public string OnAjaxBegin
-		{
-			get;
-			set;
-		}
-
-		public string OnAjaxSuccess
-		{
-			get;
-			set;
-		}
-
-		public string OnAjaxFailure
-		{
-			get;
-			set;
-		}
-
-		public string OnAjaxComplete
-		{
-			get;
-			set;
-		}
-
         public override bool NameIsRequired
         {
             get

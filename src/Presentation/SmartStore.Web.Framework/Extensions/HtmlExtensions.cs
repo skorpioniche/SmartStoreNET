@@ -7,7 +7,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Web.Mvc;
-using System.Web.Routing;
 using System.Web.Mvc.Html;
 using System.Web.WebPages;
 using SmartStore.Core;
@@ -39,14 +38,16 @@ namespace SmartStore.Web.Framework
             var a = new TagBuilder("a");
             a.MergeAttribute("href", "#");
             a.MergeAttribute("onclick", "return false;");
-            //a.MergeAttribute("rel", "tooltip");
+            a.MergeAttribute("rel", "tooltip");
             a.MergeAttribute("title", value);
             a.MergeAttribute("tabindex", "-1");
             a.AddCssClass("hint");
 
-			// Create img
-			var img = new TagBuilder("i");
-			img.AddCssClass("fa fa-question-circle");
+            // Create img
+            var img = new TagBuilder("i");
+
+            // Add attributes
+            img.MergeAttribute("class", "icon-question-sign");
 
             a.InnerHtml = img.ToString();
 
@@ -73,12 +74,34 @@ namespace SmartStore.Web.Framework
                             var locale = helper.ViewData.Model.Locales[i];
                             var language = EngineContext.Current.Resolve<ILanguageService>().GetLanguageById(locale.LanguageId);
                             x.Add().Text(language.Name)
-                                .Content(localizedTemplate(i).ToHtmlString())
+                                .Content(localizedTemplate
+                                    (i).
+                                    ToHtmlString
+                                    ())
                                 .ImageUrl("~/Content/images/flags/" + language.FlagImageFileName);
                         }
                     }).ToHtmlString();
                     writer.Write(tabStrip);
                     writer.Write("</div>");
+
+                    #region OBSOLETE
+                    //var tabStrip = helper.Telerik().TabStrip().Name(name).Items(x =>
+                    //{
+                    //    x.Add().Text("Standard").Content(standardTemplate(helper.ViewData.Model).ToHtmlString()).Selected(true);
+                    //    for (int i = 0; i < helper.ViewData.Model.Locales.Count; i++)
+                    //    {
+                    //        var locale = helper.ViewData.Model.Locales[i];
+                    //        var language = EngineContext.Current.Resolve<ILanguageService>().GetLanguageById(locale.LanguageId);
+                    //        x.Add().Text(language.Name)
+                    //            .Content(localizedTemplate
+                    //                (i).
+                    //                ToHtmlString
+                    //                ())
+                    //            .ImageUrl("~/Content/images/flags/" + language.FlagImageFileName);
+                    //    }
+                    //}).ToHtmlString();
+                    //writer.Write(tabStrip);
+                    #endregion
                 }
                 else
                 {
@@ -153,7 +176,8 @@ namespace SmartStore.Web.Framework
                     if (displayHint)
                     {
                         var langId = EngineContext.Current.Resolve<IWorkContext>().WorkingLanguage.Id;
-                        hint = EngineContext.Current.Resolve<ILocalizationService>().GetResource(resourceDisplayName.ResourceKey + ".Hint", langId, false, "", true);
+                        hint = EngineContext.Current.Resolve<ILocalizationService>()
+                            .GetResource(resourceDisplayName.ResourceKey + ".Hint", langId, false, "", true);
                     }
                 }
             }
@@ -163,24 +187,24 @@ namespace SmartStore.Web.Framework
                 labelText = metadata.PropertyName.SplitPascalCase();
             }
 
-			var label = helper.LabelFor(expression, labelText, htmlAttributes);
+            var label = helper.LabelFor(expression, labelText, htmlAttributes);
 
-			if (displayHint)
-			{
-				result.Append("<div class='ctl-label'>");
-				{
-					result.Append(label);
-					if (hint.HasValue())
-					{
-						result.Append(helper.Hint(hint).ToHtmlString());
-					}
-				}
-				result.Append("</div>");
-			}
-			else
-			{
-				result.Append(label);
-			}
+            if (displayHint)
+            {
+                result.Append("<div class='ctl-label'>");
+                {
+                    result.Append(label);
+                    if (hint.HasValue())
+                    {
+                        result.Append(helper.Hint(hint).ToHtmlString());
+                    }
+                }
+                result.Append("</div>");
+            }
+            else
+            {
+                result.Append(label);
+            }
 
             return MvcHtmlString.Create(result.ToString());
         }
@@ -251,10 +275,6 @@ namespace SmartStore.Web.Framework
             daysList.Attributes.Add("class", "date-part");
             monthsList.Attributes.Add("class", "date-part");
             yearsList.Attributes.Add("class", "date-part");
-
-			daysList.Attributes.Add("data-select-min-results-for-search", "100");
-			monthsList.Attributes.Add("data-select-min-results-for-search", "100");
-			//yearsList.Attributes.Add("data-select-min-results-for-search", "100");
 
 			if (disabled)
 			{
@@ -462,24 +482,16 @@ namespace SmartStore.Web.Framework
             return MvcHtmlString.Create(sb.ToString());
         }
 
-		public static MvcHtmlString ColorBox(this HtmlHelper html, string name, string color)
-		{
-			return ColorBox(html, name, color, null);
-		}
-
-        public static MvcHtmlString ColorBox(this HtmlHelper html, string name, string color, string defaultColor)
+        public static MvcHtmlString ColorBox(this HtmlHelper html, string name, string color)
         {
             var sb = new StringBuilder();
 
-			defaultColor = defaultColor.EmptyNull();
-			var isDefault = color.IsCaseInsensitiveEqual(defaultColor);
+            sb.AppendFormat("<div class='input-append color sm-colorbox' data-color='{0}' data-color-format='hex'>", color);
 
-            sb.AppendFormat("<span class='input-append color sm-colorbox' data-color='{0}' data-color-format='hex'>", color);
-
-            sb.AppendFormat(html.TextBox(name, isDefault ? "" : color, new { @class = "span2 colorval", placeholder = defaultColor }).ToHtmlString());
+            sb.AppendFormat(html.TextBox(name, color, new { @class = "span2 colorval" }).ToHtmlString());
             sb.AppendFormat("<span class='add-on'><i style='background-color:{0}; border:1px solid #bbb'></i></span>", color);
 
-            sb.Append("</span>");
+            sb.Append("</div>");
 
             var bootstrapJsRoot = "~/Content/bootstrap/js/";
             html.AppendScriptParts(false,

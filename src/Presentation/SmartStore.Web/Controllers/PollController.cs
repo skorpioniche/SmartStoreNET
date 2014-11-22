@@ -170,10 +170,6 @@ namespace SmartStore.Web.Controllers
                 pollModel.AlreadyVoted = _pollService.AlreadyVoted(pollModel.Id, _workContext.CurrentCustomer.Id);
                 model.Add(pollModel);
             }
-
-			if (model.Count == 0)
-				return Content("");
-
             return PartialView(model);
         }
 

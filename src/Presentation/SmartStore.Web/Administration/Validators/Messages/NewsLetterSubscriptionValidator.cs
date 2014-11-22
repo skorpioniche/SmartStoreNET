@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Messages
 {
-	public partial class NewsLetterSubscriptionValidator : AbstractValidator<NewsLetterSubscriptionModel>
+    public class NewsLetterSubscriptionValidator : AbstractValidator<NewsLetterSubscriptionModel>
     {
         public NewsLetterSubscriptionValidator(ILocalizationService localizationService)
         {

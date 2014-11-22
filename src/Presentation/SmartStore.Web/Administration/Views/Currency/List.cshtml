@@ -8,20 +8,20 @@
 }
 <div class="section-header">
     <div class="title">
-        <i class="fa fa-money"></i>
+        <i class="icon icon-money"></i>
         @T("Admin.Configuration.Currencies")
     </div>
     <div class="options">
         <a href="@Url.Action("Create")" class="btn btn-primary">
-            <i class="fa fa-plus"></i>
+            <i class="icon-plus"></i>
             @T("Admin.Common.AddNew")
         </a>
         <a href="javascript:document.CurrencySettings.submit()" class="btn">
-            <i class="fa fa-check"></i>
+            <i class="icon-ok"></i>
             @T("Admin.Common.Save")
         </a>
         <a href="@Url.Action("List", "Currency", new { liveRates = true })" class="btn">
-            <i class="fa fa-refresh"></i>
+            <i class="icon-refresh"></i>
             @T("Admin.Configuration.Currencies.GetLiveRates")
         </a>
     </div>
@@ -56,8 +56,9 @@
                     .BindTo(Model.Data)
                     .Columns(columns =>
                     {
-						columns.Bound(x => x.Name)
-							.Template(x => Html.ActionLink(x.Name, "Edit", new { id = x.Id }));
+                        columns.Bound(x => x.Name)
+                            .Template(x => Html.ActionLink(x.Name, "Edit", new { id = x.Id }))
+                            .ClientTemplate("<a href='Edit/<#= Id #>'><#= Name #></a>");
                         columns.Bound(x => x.CurrencyCode)
                             .Centered();
                         columns.Bound(x => x.Rate)
@@ -67,34 +68,29 @@
                         columns.Bound(x => x.DomainEndings);
                         columns.Bound(x => x.IsPrimaryExchangeRateCurrency)
                             .Centered()
-							.Template(					    
-								@<a href='@Url.Action("MarkAsPrimaryExchangeRateCurrency", new { id = item.Id })' class="btn" @Html.Attr("disabled", "disabled", item.IsPrimaryExchangeRateCurrency) title='@T("Admin.Configuration.Currencies.Fields.MarkAsPrimaryExchangeRateCurrency").Text'>
-									@if (item.IsPrimaryExchangeRateCurrency)
-									{
-										<i class="fa fa-check"></i>
-									}
-									@T("Admin.Telerik.GridLocalization.Select")
-								</a>
-							)
+                            .Template(item => @Html.SymbolForBool(item.IsPrimaryExchangeRateCurrency))
+                            .ClientTemplate(@Html.SymbolForBool("IsPrimaryExchangeRateCurrency"))
                             .Width(100);
+                        columns.Bound(x => x.Id)
+                            .Template(x => Html.ActionLink(T("Admin.Telerik.GridLocalization.Select").Text, "MarkAsPrimaryExchangeRateCurrency", new { id = x.Id }, new { @class = "btn" }))
+                            .Centered()
+                            .HeaderTemplate(T("Admin.Configuration.Currencies.Fields.MarkAsPrimaryExchangeRateCurrency").Text);
                         columns.Bound(x => x.IsPrimaryStoreCurrency)
                             .Centered()
-							.Template(					    
-								@<a href='@Url.Action("MarkAsPrimaryStoreCurrency", new { id = item.Id })' class="btn" @Html.Attr("disabled", "disabled", item.IsPrimaryStoreCurrency) title='@T("Admin.Configuration.Currencies.Fields.MarkAsPrimaryStoreCurrency").Text'>
-									@if (item.IsPrimaryStoreCurrency)
-									{
-										<i class="fa fa-check"></i>
-									}
-									@T("Admin.Telerik.GridLocalization.Select")
-								</a>
-							)
+                            .Template(item => @Html.SymbolForBool(item.IsPrimaryStoreCurrency))
+                            .ClientTemplate(@Html.SymbolForBool("IsPrimaryStoreCurrency"))
                             .Width(100);
+                        columns.Bound(x => x.Id)
+                            .Template(x => Html.ActionLink(T("Admin.Telerik.GridLocalization.Select").Text, "MarkAsPrimaryStoreCurrency", new { id = x.Id }, new { @class = "btn" }))
+                            .Centered()
+                            .HeaderTemplate(T("Admin.Configuration.Currencies.Fields.MarkAsPrimaryStoreCurrency").Text);
                         columns.Bound(x => x.Published)
-                            .Template(item => Html.SymbolForBool(item.Published))
+                            .Template(item => @Html.SymbolForBool(item.Published))
+                            .ClientTemplate(@Html.SymbolForBool("Published"))
                             .Centered()
                             .Width(100);
                     })
-)
+            )
         </td>
     </tr>
 </table>

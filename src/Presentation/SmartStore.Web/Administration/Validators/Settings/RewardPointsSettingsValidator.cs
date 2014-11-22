@@ -5,7 +5,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Settings
 {
-	public partial class RewardPointsSettingsValidator : AbstractValidator<RewardPointsSettingsModel>
+    public class RewardPointsSettingsValidator : AbstractValidator<RewardPointsSettingsModel>
     {
         public RewardPointsSettingsValidator(ILocalizationService localizationService)
         {

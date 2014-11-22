@@ -66,8 +66,7 @@
     	// submit multi select filtering
     	dialog.on('click', '.btn-primary', function () {
     		var form = dialog.find('.multi-select-form'),
-				nameEl = form.find('[name=filter]'),
-    			filter = nameEl.val() ? $.parseJSON(nameEl.val()) : null,
+    			filter = $.parseJSON(form.find('[name=filter]').val()),
 				values = [];
 
     		if (filter != null) {
@@ -81,7 +80,7 @@
 
     		var valueString = '[' + values.join(',') + ']';
 
-    		nameEl.val(valueString);
+    		form.find('[name=filter]').val(valueString);
     		form.submit();
     	});
     }

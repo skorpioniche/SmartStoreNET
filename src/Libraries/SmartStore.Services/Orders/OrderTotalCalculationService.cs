@@ -341,17 +341,12 @@ namespace SmartStore.Services.Orders
 
             var allDiscounts = _discountService.GetAllDiscounts(DiscountType.AssignedToOrderSubTotal);
             var allowedDiscounts = new List<Discount>();
-			if (allDiscounts != null)
-			{
-				foreach (var discount in allDiscounts)
-				{
-					if (_discountService.IsDiscountValid(discount, customer) && discount.DiscountType == DiscountType.AssignedToOrderSubTotal &&
-						!allowedDiscounts.ContainsDiscount(discount))
-					{
-						allowedDiscounts.Add(discount);
-					}
-				}
-			}
+            if (allDiscounts != null)
+                foreach (var discount in allDiscounts)
+                    if (_discountService.IsDiscountValid(discount, customer) &&
+                               discount.DiscountType == DiscountType.AssignedToOrderSubTotal &&
+                               !allowedDiscounts.ContainsDiscount(discount))
+                        allowedDiscounts.Add(discount);
 
             appliedDiscount = allowedDiscounts.GetPreferredDiscount(orderSubTotal);
             if (appliedDiscount != null)
@@ -603,15 +598,15 @@ namespace SmartStore.Services.Orders
                     shippingAddress = customer.ShippingAddress;
 
 				var shippingRateComputationMethods = _shippingService.LoadActiveShippingRateComputationMethods(_storeContext.CurrentStore.Id);
-                if (!shippingRateComputationMethods.Any())
+                if (shippingRateComputationMethods == null || shippingRateComputationMethods.Count == 0)
                     throw new SmartException("Shipping rate computation method could not be loaded");
 
-                if (shippingRateComputationMethods.Count() == 1)
+                if (shippingRateComputationMethods.Count == 1)
                 {
                     var getShippingOptionRequest = _shippingService.CreateShippingOptionRequest(cart, shippingAddress);
 
-                    var shippingRateComputationMethod = shippingRateComputationMethods.First();
-                    decimal? fixedRate = shippingRateComputationMethod.Value.GetFixedRate(getShippingOptionRequest);
+                    var shippingRateComputationMethod = shippingRateComputationMethods[0];
+                    decimal? fixedRate = shippingRateComputationMethod.GetFixedRate(getShippingOptionRequest);
                     if (fixedRate.HasValue)
                     {
                         //adjust shipping rate
@@ -707,7 +702,8 @@ namespace SmartStore.Services.Orders
         /// <param name="taxRates">Tax rates</param>
         /// <param name="usePaymentMethodAdditionalFee">A value indicating whether we should use payment method additional fee when calculating tax</param>
         /// <returns>Tax total</returns>
-		public virtual decimal GetTaxTotal(IList<OrganizedShoppingCartItem> cart, out SortedDictionary<decimal, decimal> taxRates, bool usePaymentMethodAdditionalFee = true)
+		public virtual decimal GetTaxTotal(IList<OrganizedShoppingCartItem> cart,
+            out SortedDictionary<decimal, decimal> taxRates, bool usePaymentMethodAdditionalFee = true)
         {
             if (cart == null)
                 throw new ArgumentNullException("cart");

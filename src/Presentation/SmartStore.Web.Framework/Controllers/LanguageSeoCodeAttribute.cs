@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -59,21 +58,10 @@ namespace SmartStore.Web.Framework.Controllers
             {
                 if (!workContext.IsPublishedLanguage(seoCode))
                 {
-					var descriptor = filterContext.ActionDescriptor;
-					
-					// language is not defined in system or not assigned to store
-					if (localizationSettings.InvalidLanguageRedirectBehaviour == InvalidLanguageRedirectBehaviour.ReturnHttp404)
+                    // language is not defined in system or not assigned to store
+                    if (localizationSettings.InvalidLanguageRedirectBehaviour == InvalidLanguageRedirectBehaviour.ReturnHttp404)
                     {
-						filterContext.Result = new ViewResult
-						{
-							ViewName = "NotFound",
-							MasterName = (string)null,
-							ViewData = new ViewDataDictionary<HandleErrorInfo>(new HandleErrorInfo(new HttpException(404, "The resource does not exist."), descriptor.ActionName, descriptor.ControllerDescriptor.ControllerName)),
-							TempData = filterContext.Controller.TempData
-						};
-						filterContext.RouteData.Values["StripInvalidSeoCode"] = true;
-						filterContext.RequestContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.NotFound;
-						filterContext.RequestContext.HttpContext.Response.TrySkipIisCustomErrors = true;
+                        filterContext.Result = new RedirectResult("~/404");
                     }
                     else if (localizationSettings.InvalidLanguageRedirectBehaviour == InvalidLanguageRedirectBehaviour.FallbackToWorkingLanguage)
                     {

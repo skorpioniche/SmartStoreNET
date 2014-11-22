@@ -12,14 +12,13 @@ namespace SmartStore
 {   
     public static class MiscExtensions
     {
-		public static void Dump(this Exception exc) 
-		{
-			try 
-			{
+		public static void Dump(this Exception exc) {
+			try {
 				exc.StackTrace.Dump();
 				exc.Message.Dump();
 			}
-			catch { }
+			catch (Exception) {
+			}
 		}
 		public static string ToElapsedMinutes(this Stopwatch watch) 
         {

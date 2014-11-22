@@ -43,13 +43,9 @@ namespace SmartStore.Web.Models.ShoppingCart
 		public int BundleThumbSize { get; set; }
         public bool DisplayDeliveryTime { get; set; }
         public bool DisplayShortDesc { get; set; }
-        public bool DisplayWeight { get; set; }
         public bool DisplayBasePrice { get; set; }
 
 		public ButtonPaymentMethodModel ButtonPaymentMethods { get; set; }
-
-        public bool DisplayCommentBox { get; set; }
-        public string CustomerComment { get; set; }
 
 		#region Nested Classes
 
@@ -92,8 +88,6 @@ namespace SmartStore.Web.Models.ShoppingCart
 
             public IList<string> Warnings { get; set; }
 
-            public decimal Weight { get; set; }
-
             public bool IsShipEnabled { get; set; }
 
             public string DeliveryTimeName { get; set; }
@@ -101,7 +95,7 @@ namespace SmartStore.Web.Models.ShoppingCart
             public string DeliveryTimeHexValue { get; set; }
 
             public string ShortDesc { get; set; }
-            
+
             public string BasePrice { get; set; }
 
 			public bool BundlePerItemPricing { get; set; }
@@ -188,9 +182,6 @@ namespace SmartStore.Web.Models.ShoppingCart
             public string ShippingMethod { get; set; }
 
             public string PaymentMethod { get; set; }
-			public string PaymentSummary { get; set; }
-
-			public bool IsPaymentSelectionSkipped { get; set; }
         }
 		#endregion
     }

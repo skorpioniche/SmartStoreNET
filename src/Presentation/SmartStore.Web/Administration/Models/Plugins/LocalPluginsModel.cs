@@ -4,7 +4,8 @@ using System.Linq;
 using System.Web;
 using SmartStore.Web.Framework.Mvc;
 using SmartStore.Collections;
-using SmartStore.Admin.Models.Stores;
+
+// codehint: sm-add (whole file)
 
 namespace SmartStore.Admin.Models.Plugins
 {
@@ -17,8 +18,9 @@ namespace SmartStore.Admin.Models.Plugins
             this.Groups = new Multimap<string, PluginModel>();
         }
 
-		public List<StoreModel> AvailableStores { get; set; }
-
+        /// <summary>
+        /// Tuple-1: group name, Tuple-2: plugins count
+        /// </summary>
         public Multimap<string, PluginModel> Groups { get; set; }
 
         public ICollection<PluginModel> AllPlugins

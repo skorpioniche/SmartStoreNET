@@ -84,7 +84,7 @@ namespace SmartStore.Web.Infrastructure.Installation
             foreach (var id in taxIds)
             {
                 decimal rate = 0;
-                if (_data.FixedTaxRates.Any() && _data.FixedTaxRates.Length > i)
+                if (_data.FixedTaxRates.HasItems() && _data.FixedTaxRates.Length > i)
                 {
                     rate = _data.FixedTaxRates[i];
                 }
@@ -131,8 +131,72 @@ namespace SmartStore.Web.Infrastructure.Installation
 				// already without AutoDetectChanges(), so it's fast.
 			}
 
-			MigratorUtils.ExecutePendingResourceMigrations(locPath, _ctx);
+			ExecutePendingResourceMigrations(locPath);
         }
+
+		private void ExecutePendingResourceMigrations(string resPath)
+		{
+			string headPath = Path.Combine(resPath, "head.txt");
+			if (!File.Exists(headPath))
+				return;
+
+			string resHead = File.ReadAllText(headPath);
+			if (!MigratorUtils.IsValidMigrationId(resHead))
+				return;
+			
+			var migrator = new DbMigrator(new MigrationsConfiguration());
+			var migrations = GetPendingResourceMigrations(migrator, resHead);
+
+			foreach (var id in migrations)
+			{
+				if (MigratorUtils.IsAutomaticMigration(id))
+					continue;
+
+				if (!MigratorUtils.IsValidMigrationId(id))
+					continue;
+
+				// Resolve and instantiate the DbMigration instance from the assembly
+				var migration = MigratorUtils.CreateMigrationInstanceByMigrationId(id, migrator.Configuration);
+
+				var provider = migration as ILocaleResourcesProvider;
+				if (provider == null)
+					continue;
+
+				var builder = new LocaleResourcesBuilder();
+				provider.MigrateLocaleResources(builder);
+				
+				var resEntries = builder.Build();
+				var resMigrator = new LocaleResourcesMigrator(_ctx);
+				resMigrator.Migrate(resEntries);
+			}
+		}
+
+		private IEnumerable<string> GetPendingResourceMigrations(DbMigrator migrator, string resHead)
+		{
+			var local = migrator.GetLocalMigrations();
+			var atHead = false;
+
+			if (local.Last().IsCaseInsensitiveEqual(resHead))
+				yield break;
+
+			foreach (var id in local)
+			{
+				if (!atHead)
+				{
+					if (!id.IsCaseInsensitiveEqual(resHead))
+					{
+						continue;
+					}
+					else
+					{
+						atHead = true;
+						continue;
+					}
+				}
+
+				yield return id;
+			}
+		}
 
 		private void PopulateCurrencies()
         {
@@ -168,11 +232,9 @@ namespace SmartStore.Web.Infrastructure.Installation
                 LastActivityDateUtc = DateTime.UtcNow,
             };
 
-            var adminAddress = _data.AdminAddress();
-
-            adminUser.Addresses.Add(adminAddress);
-            adminUser.BillingAddress = adminAddress;
-            adminUser.ShippingAddress = adminAddress;
+            adminUser.Addresses.Add(_data.AdminAddress());
+            adminUser.BillingAddress = _data.AdminAddress();
+            adminUser.ShippingAddress = _data.AdminAddress();
             adminUser.CustomerRoles.Add(customerRoles.SingleOrDefault(x => x.SystemName == SystemCustomerRoleNames.Administrators));
             adminUser.CustomerRoles.Add(customerRoles.SingleOrDefault(x => x.SystemName == SystemCustomerRoleNames.ForumModerators));
             adminUser.CustomerRoles.Add(customerRoles.SingleOrDefault(x => x.SystemName == SystemCustomerRoleNames.Registered));

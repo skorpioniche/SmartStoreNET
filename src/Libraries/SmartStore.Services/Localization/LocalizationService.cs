@@ -128,6 +128,21 @@ namespace SmartStore.Services.Localization
 			return result;
 		}
 
+		/// <summary>
+		/// Deletes all string resources of a plugin
+		/// </summary>
+		/// <param name="pluginDescriptor">Plugin descriptor</param>
+		public virtual void DeletePluginStringResources(PluginDescriptor pluginDescriptor)
+		{
+			if (pluginDescriptor != null && pluginDescriptor.ResourceRootKey.HasValue() && pluginDescriptor.SystemName.HasValue())
+			{
+				DeleteLocaleStringResources(pluginDescriptor.ResourceRootKey);
+
+				DeleteLocaleStringResources("Plugins.FriendlyName." + pluginDescriptor.SystemName, false);
+				DeleteLocaleStringResources("Plugins.Description." + pluginDescriptor.SystemName, false);
+			}
+		}
+
         /// <summary>
         /// Gets a locale string resource
         /// </summary>
@@ -249,11 +264,7 @@ namespace SmartStore.Services.Localization
         {
             Action<ConcurrentDictionary<string, Tuple<int, string>>> loadAllAction = (d) =>
             {
-				var query = from l in _lsrRepository.TableUntracked
-							orderby l.ResourceName
-							where l.LanguageId == languageId
-							select l;
-				var locales = query.ToList();
+                var locales = this.GetAllResources(languageId);
 
                 foreach (var locale in locales)
                 {
@@ -300,7 +311,7 @@ namespace SmartStore.Services.Localization
         /// <param name="languageId">Language identifier</param>
         /// <param name="logIfNotFound">A value indicating whether to log error if locale string resource is not found</param>
         /// <param name="defaultValue">Default value</param>
-        /// <param name="returnEmptyIfNotFound">A value indicating whether an empty string will be returned if a resource is not found and default value is set to empty string</param>
+        /// <param name="returnEmptyIfNotFound">A value indicating whether to empty string will be returned if a resource is not found and default value is set to empty string</param>
         /// <returns>A string representing the requested resource string.</returns>
         public virtual string GetResource(string resourceKey, int languageId = 0, bool logIfNotFound = true, string defaultValue = "", bool returnEmptyIfNotFound = false)
         {
@@ -354,7 +365,6 @@ namespace SmartStore.Services.Localization
                         result = resourceKey;
                 }
             }
-
             return result;
         }
 
@@ -535,13 +545,12 @@ namespace SmartStore.Services.Localization
 
 				if (languageCode.HasValue() && language != null)
 				{
-					if (filterLanguages != null && !filterLanguages.Any(x => x.Id == language.Id))
+					if (filterLanguages != null && !filterLanguages.Exists(x => x.Id == language.Id))
 					{
 						continue;
 					}
 
 					doc.Load(filePath);
-					doc = FlattenResourceFile(doc);
 
 					if (forceToList == null)
 					{
@@ -571,7 +580,7 @@ namespace SmartStore.Services.Localization
 
         public virtual XmlDocument FlattenResourceFile(XmlDocument source)
         {
-            Guard.ArgumentNotNull(() => source);
+            Guard.NotNull(() => source);
 
             if (!source.SelectNodes("//Children").HasItems())
             {
@@ -606,7 +615,7 @@ namespace SmartStore.Services.Localization
 
                 foreach (var resource in resources)
                 {
-                    RecursivelyWriteResource(resource, writer, null);
+                    RecursivelyWriteResource(resource, writer);
                 }
 
                 writer.WriteEndElement();
@@ -620,7 +629,7 @@ namespace SmartStore.Services.Localization
             return result;
         }
 
-        private void RecursivelyWriteResource(LocaleStringResourceParent resource, XmlWriter writer, bool? parentAppendRootKey)
+        private void RecursivelyWriteResource(LocaleStringResourceParent resource, XmlWriter writer)
         {
             //The value isn't actually used, but the name is used to create a namespace.
             if (resource.IsPersistable)
@@ -631,20 +640,6 @@ namespace SmartStore.Services.Localization
                 writer.WriteString(resource.NameWithNamespace);
                 writer.WriteEndAttribute();
 
-				if (resource.AppendRootKey.HasValue)
-				{
-					writer.WriteStartAttribute("AppendRootKey", "");
-					writer.WriteString(resource.AppendRootKey.Value ? "true" : "false");
-					writer.WriteEndAttribute();
-					parentAppendRootKey = resource.AppendRootKey;
-				}
-				else if (parentAppendRootKey.HasValue)
-				{
-					writer.WriteStartAttribute("AppendRootKey", "");
-					writer.WriteString(parentAppendRootKey.Value ? "true" : "false");
-					writer.WriteEndAttribute();
-				}
-
                 writer.WriteStartElement("Value", "");
                 writer.WriteString(resource.ResourceValue);
                 writer.WriteEndElement();
@@ -654,7 +649,7 @@ namespace SmartStore.Services.Localization
 
             foreach (var child in resource.ChildLocaleStringResources)
             {
-				RecursivelyWriteResource(child, writer, resource.AppendRootKey ?? parentAppendRootKey);
+                RecursivelyWriteResource(child, writer);
             }
 
         }
@@ -693,12 +688,6 @@ namespace SmartStore.Services.Localization
                 }
                 ResourceName = resName;
 
-				var appendRootKeyAttribute = localStringResource.Attributes["AppendRootKey"];
-				if (appendRootKeyAttribute != null)
-				{
-					AppendRootKey = appendRootKeyAttribute.Value.ToBool(true);
-				}
-
                 if (resValueNode == null || string.IsNullOrEmpty(resValueNode.InnerText.Trim()))
                 {
                     IsPersistable = false;
@@ -714,14 +703,10 @@ namespace SmartStore.Services.Localization
                     ChildLocaleStringResources.Add(new LocaleStringResourceParent(childResource, NameWithNamespace));
                 }
             }
-
             public string Namespace { get; set; }
-
             public IList<LocaleStringResourceParent> ChildLocaleStringResources = new List<LocaleStringResourceParent>();
 
             public bool IsPersistable { get; set; }
-
-			public bool? AppendRootKey { get; set; }
 
             public string NameWithNamespace
             {

@@ -4,15 +4,7 @@
 
 @if (Model.Id > 0)
 {
-    <script>
-		function onRowDataBound_bundleItems(e) {
-			if (!e.dataItem.Published) {
-				$(e.row).find('td').wrapInner('<span class="muted" />');
-			}
-		}
-	</script>
-	
-	<div>
+    <div>
         @(Html.LocalizedEditor<ProductModel, ProductLocalizedModel>("product-bundle-localized",
             @<table class="adminContent">
                 <tr>
@@ -132,7 +124,7 @@
                 <td width="100%">
 					<button type="submit" id="btnAddNewBundleItem" name="btnAddNewBundleItem" class="btn btn-warning btn-below"
 							onclick="javascript:OpenWindow('@(Url.Action("BundleItemAddPopup", "Product", new { productId = Model.Id, btnId = "btnRefreshBundleItems", formId = "product-form" }))', 1000, 730, true); return false;">
-						<i class="fa fa-plus"></i>
+						<i class="icon-plus"></i>
 						@T("Common.AddNew")
 					</button>
 
@@ -142,21 +134,25 @@
         </table>
     </div>
     
-    <script>
-	$(document).ready(function () {
-		$('#btnRefreshBundleItems').click(function () {
-			$("#bundleitems-grid").data('tGrid').ajaxRequest();
-			return false;
-		});
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#btnRefreshBundleItems').click(function () {
+                $("#bundleitems-grid").data('tGrid').ajaxRequest();
+                return false;
+            });
 
-		$(document).on('change', '#@Html.FieldIdFor(model => model.BundlePerItemPricing)', function () {
-            $('#TierPriceContainer').toggle(!$(this).is(':checked'));
+        	$('#@Html.FieldIdFor(model => model.BundlePerItemPricing)').change(function () {
+        		$('#TierPriceContainer').toggle(
+					!$('#@Html.FieldIdFor(model => model.BundlePerItemPricing)').is(':checked')
+				);
+        	}).trigger('change');
         });
 
-        $(document).on('change', '#@Html.FieldIdFor(model => model.BundlePerItemShoppingCart)', function () {
-        	$('a[href=#tab-inventory]').parent().toggle(!$(this).is(':checked'));
-        });
-	});
+        function onRowDataBound_bundleItems(e) {
+            if (!e.dataItem.Published) {
+                $(e.row).find('td').wrapInner('<span class="muted" />');
+            }
+        }
     </script>
 }
 else

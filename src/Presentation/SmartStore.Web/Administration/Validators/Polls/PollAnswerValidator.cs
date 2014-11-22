@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Polls
 {
-	public partial class PollAnswerValidator : AbstractValidator<PollAnswerModel>
+    public class PollAnswerValidator : AbstractValidator<PollAnswerModel>
     {
         public PollAnswerValidator(ILocalizationService localizationService)
         {

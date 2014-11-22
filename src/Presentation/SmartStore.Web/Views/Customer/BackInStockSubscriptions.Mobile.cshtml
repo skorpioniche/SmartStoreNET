@@ -1,5 +1,6 @@
 ﻿@model CustomerBackInStockSubscriptionsModel
 @using SmartStore.Web;
+@using SmartStore.Web.Extensions;
 @using SmartStore.Web.Models.Customer;
 @using SmartStore.Web.Framework.UI;
 @{
@@ -27,7 +28,7 @@
                                     @Html.RouteLink(biss.ProductName, "Product", new { SeName = biss.SeName })
                                 </div>
                                 <div class="buttons">
-                                    <a href="@Url.Action("DeleteBackInStockSubscription", new { id = @biss.Id })" data-role="button">@T("Common.Delete")</a>
+                                    <a href="@Url.RouteUrl("DeleteBackInStockSubscription", new { subscriptionId = @biss.Id })" data-role="button">@T("Common.Delete")</a>
                                 </div>
                             </div>
                         </li>
@@ -35,7 +36,7 @@
                 </ul>
                 @if (Model.TotalPages > 1)
                 {
-                    @Html.SmartStore().Pager(Model).Name("paginator").Action("BackInStockSubscriptions", "Customer")
+                    @Html.SmartStore().Pager(Model).Name("paginator").Route("CustomerBackInStockSubscriptionsPaged")
                 }
             </div>
         }

@@ -220,15 +220,19 @@ namespace SmartStore.Services.Catalog
             if (product == null)
                 throw new ArgumentNullException("product");
 
+            bool displayDeliveryTime = true;
+
 			if (product.ManageInventoryMethod == ManageInventoryMethod.ManageStock || product.ManageInventoryMethod == ManageInventoryMethod.ManageStockByAttributes)
 			{
 				return (product.StockQuantity > 0);
 			}
-            return true;
+
+            return displayDeliveryTime;
         }
 
 
-        public static bool ProductTagExists(this Product product, int productTagId)
+        public static bool ProductTagExists(this Product product,
+            int productTagId)
         {
             if (product == null)
                 throw new ArgumentNullException("product");
@@ -312,7 +316,7 @@ namespace SmartStore.Services.Catalog
 				decimal price = decimal.Add(product.Price, priceAdjustment);
 				decimal basePriceValue = Convert.ToDecimal((price / product.BasePriceAmount) * product.BasePriceBaseAmount);
 
-				string basePrice = priceFormatter.FormatPrice(basePriceValue, true, false);
+				string basePrice = priceFormatter.FormatPrice(basePriceValue, false, false);
 				string unit = "{0} {1}".FormatWith(product.BasePriceBaseAmount, product.BasePriceMeasureUnit);
 
 				if (languageIndependent)

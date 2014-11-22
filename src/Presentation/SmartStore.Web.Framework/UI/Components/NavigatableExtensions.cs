@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Web.Routing;
 using System.Web.Mvc;
-using System.Web;
-using SmartStore.Collections;
 
 namespace SmartStore.Web.Framework.UI
 {
@@ -157,22 +155,7 @@ namespace SmartStore.Web.Framework.UI
 
 				routeValues[param.Name] = param.Value;
 
-				var requestContext = urlHelper.RequestContext;
-				if (requestContext.RouteData != null && requestContext.RouteData.Route != null)
-				{
-					var virtualPath = requestContext.RouteData.Route.GetVirtualPath(requestContext, routeValues);
-					if (virtualPath != null)
-					{
-						str = VirtualPathUtility.Combine(requestContext.HttpContext.Request.ApplicationPath, virtualPath.VirtualPath);
-						
-					}
-					else
-					{
-						str = UrlHelper.GenerateUrl(null, null, null, routeValues, RouteTable.Routes, urlHelper.RequestContext, true);
-					}
-				}
-
-				return str;
+				return UrlHelper.GenerateUrl(null, null, null, routeValues, RouteTable.Routes, urlHelper.RequestContext, true);
 			}
 
 			if (routeValues.Any())

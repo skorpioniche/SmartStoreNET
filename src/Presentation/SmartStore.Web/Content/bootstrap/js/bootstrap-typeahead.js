@@ -45,14 +45,9 @@
 
   , select: function () {
       var val = this.$menu.find('.active').attr('data-value')
-	  // codehint: deleted ('change' results in js error)
-  	  /*this.$element
+      this.$element
         .val(this.updater(val))
-        .change()*/
-
-      this.$element.val(this.updater(val));
-      this.$element.trigger("change");
-
+        .change()
       return this.hide()
     }
 

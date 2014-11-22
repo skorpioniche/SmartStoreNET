@@ -34,8 +34,8 @@ namespace SmartStore.Web.Framework.Plugins
 		private IDictionary<int, string> _cachedPathes;
 		private Func<PromotionFeedSettings> _settingsFunc;
 
-		public FeedPluginHelper(IComponentContext componentContext, string systemName, string rootNamespace, Func<PromotionFeedSettings> settings, string providerResRootKey = null /* Legacy */) :
-			base(componentContext, systemName, providerResRootKey)
+		public FeedPluginHelper(IComponentContext componentContext, string systemName, string rootNamespace, Func<PromotionFeedSettings> settings) :
+			base(componentContext, systemName)
 		{
 			_namespace = rootNamespace;
 			_settingsFunc = settings;
@@ -706,7 +706,7 @@ namespace SmartStore.Web.Framework.Plugins
 			var stores = storeService.GetAllStores().ToList();
 
 			var urlHelper = new UrlHelper(HttpContext.Current.Request.RequestContext);
-			var routeValues = new { /*Namespaces = _namespace + ".Controllers",*/ area = _namespace };
+			var routeValues = new { Namespaces = _namespace + ".Controllers"/*, area = ""*/ };
 
 			model.GenerateFeedUrl = urlHelper.Action("GenerateFeed", controller, routeValues);
 			model.GenerateFeedProgressUrl = urlHelper.Action("GenerateFeedProgress", controller, routeValues);

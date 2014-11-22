@@ -22,7 +22,6 @@ using SmartStore.Web.Framework.Controllers;
 using SmartStore.Web.Framework.Mvc;
 using Telerik.Web.Mvc;
 using Telerik.Web.Mvc.UI;
-using SmartStore.Core.Events;
 
 namespace SmartStore.Admin.Controllers
 {
@@ -52,7 +51,6 @@ namespace SmartStore.Admin.Controllers
 		private readonly IDateTimeHelper _dateTimeHelper;
         private readonly AdminAreaSettings _adminAreaSettings;
         private readonly CatalogSettings _catalogSettings;
-		private readonly IEventPublisher _eventPublisher;
 
         #endregion
 
@@ -69,8 +67,7 @@ namespace SmartStore.Admin.Controllers
             ICustomerActivityService customerActivityService,
 			IDateTimeHelper dateTimeHelper,
 			AdminAreaSettings adminAreaSettings,
-            CatalogSettings catalogSettings,
-			IEventPublisher eventPublisher)
+            CatalogSettings catalogSettings)
         {
             this._categoryService = categoryService;
             this._categoryTemplateService = categoryTemplateService;
@@ -93,7 +90,6 @@ namespace SmartStore.Admin.Controllers
 			this._dateTimeHelper = dateTimeHelper;
             this._adminAreaSettings = adminAreaSettings;
             this._catalogSettings = catalogSettings;
-			this._eventPublisher = eventPublisher;
         }
 
         #endregion
@@ -311,9 +307,8 @@ namespace SmartStore.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCatalog))
                 return AccessDeniedView();
 
-            var categories = _categoryService.GetAllCategories(model.SearchCategoryName, command.Page - 1, command.PageSize, true, model.SearchAlias, true, false);
+            var categories = _categoryService.GetAllCategories(model.SearchCategoryName, command.Page - 1, command.PageSize, true, model.SearchAlias);
             var mappedCategories = categories.ToDictionary(x => x.Id);
-
             var gridModel = new GridModel<CategoryModel>
             {
                 Data = categories.Select(x =>
@@ -482,8 +477,7 @@ namespace SmartStore.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormNameAttribute("save-continue", "continueEditing")]
-		[ValidateInput(false)]
-        public ActionResult Create(CategoryModel model, bool continueEditing, FormCollection form)
+        public ActionResult Create(CategoryModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCatalog))
                 return AccessDeniedView();
@@ -515,8 +509,6 @@ namespace SmartStore.Admin.Controllers
                 SaveCategoryAcl(category, model);
 				//Stores
 				SaveStoreMappings(category, model);
-
-				_eventPublisher.Publish(new ModelBoundEvent(model, category, form));
 
                 //activity log
                 _customerActivityService.InsertActivity("AddNewCategory", _localizationService.GetResource("ActivityLog.AddNewCategory"), category.Name);
@@ -594,8 +586,7 @@ namespace SmartStore.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormNameAttribute("save-continue", "continueEditing")]
-		[ValidateInput(false)]
-        public ActionResult Edit(CategoryModel model, bool continueEditing, FormCollection form)
+        public ActionResult Edit(CategoryModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCatalog))
                 return AccessDeniedView();
@@ -649,8 +640,6 @@ namespace SmartStore.Admin.Controllers
                 SaveCategoryAcl(category, model);
 				//Stores
 				SaveStoreMappings(category, model);
-
-				_eventPublisher.Publish(new ModelBoundEvent(model, category, form));
 
                 //activity log
                 _customerActivityService.InsertActivity("EditCategory", _localizationService.GetResource("ActivityLog.EditCategory"), category.Name);

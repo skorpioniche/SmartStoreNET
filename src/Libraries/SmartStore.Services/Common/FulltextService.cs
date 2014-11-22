@@ -47,15 +47,8 @@ namespace SmartStore.Services.Common
             if (_commonSettings.UseStoredProceduresIfSupported && _dataProvider.StoredProceduresSupported)
             {
                 //stored procedures are enabled and supported by the database. 
-				try
-				{
-					var result = _dbContext.SqlQuery<int>("EXEC [FullText_IsSupported]");
-					return result.Any() && result.FirstOrDefault() > 0;
-				}
-				catch
-				{
-					return false;
-				}
+                var result = _dbContext.SqlQuery<int>("EXEC [FullText_IsSupported]");
+                return result.FirstOrDefault() > 0;
             }
             else
             {

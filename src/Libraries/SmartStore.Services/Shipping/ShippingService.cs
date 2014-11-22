@@ -36,7 +36,6 @@ namespace SmartStore.Services.Shipping
         private readonly IEventPublisher _eventPublisher;
         private readonly ShoppingCartSettings _shoppingCartSettings;
 		private readonly ISettingService _settingService;
-		private readonly IProviderManager _providerManager;
 
         #endregion
 
@@ -70,8 +69,7 @@ namespace SmartStore.Services.Shipping
             IPluginFinder pluginFinder,
             IEventPublisher eventPublisher,
             ShoppingCartSettings shoppingCartSettings,
-			ISettingService settingService,
-			IProviderManager providerManager)
+			ISettingService settingService)
         {
             this._cacheManager = cacheManager;
             this._shippingMethodRepository = shippingMethodRepository;
@@ -85,8 +83,7 @@ namespace SmartStore.Services.Shipping
             this._pluginFinder = pluginFinder;
             this._eventPublisher = eventPublisher;
             this._shoppingCartSettings = shoppingCartSettings;
-			this._settingService = settingService;
-			this._providerManager = providerManager;
+			this._settingService = settingService;	// codehint: sm-add
 		}
 
         #endregion
@@ -100,29 +97,11 @@ namespace SmartStore.Services.Shipping
         /// </summary>
 		/// <param name="storeId">Load records allows only in specified store; pass 0 to load all records</param>
         /// <returns>Shipping rate computation methods</returns>
-		public virtual IEnumerable<Provider<IShippingRateComputationMethod>> LoadActiveShippingRateComputationMethods(int storeId = 0)
+		public virtual IList<IShippingRateComputationMethod> LoadActiveShippingRateComputationMethods(int storeId = 0)
         {
-			var allMethods = LoadAllShippingRateComputationMethods(storeId);
-			var activeMethods = allMethods
-                   .Where(p => _shippingSettings.ActiveShippingRateComputationMethodSystemNames.Contains(p.Metadata.SystemName, StringComparer.InvariantCultureIgnoreCase));
-
-			if (!activeMethods.Any())
-			{
-				var fallbackMethod = allMethods.FirstOrDefault();
-				if (fallbackMethod != null)
-				{
-					_shippingSettings.ActiveShippingRateComputationMethodSystemNames.Clear();
-					_shippingSettings.ActiveShippingRateComputationMethodSystemNames.Add(fallbackMethod.Metadata.SystemName);
-					_settingService.SaveSetting(_shippingSettings);
-					return new Provider<IShippingRateComputationMethod>[] { fallbackMethod };
-				}
-				else
-				{
-					throw Error.Application("At least one shipping method provider is required to be active.");
-				}
-			}
-
-			return activeMethods;
+            return LoadAllShippingRateComputationMethods(storeId)
+                   .Where(provider => _shippingSettings.ActiveShippingRateComputationMethodSystemNames.Contains(provider.PluginDescriptor.SystemName, StringComparer.InvariantCultureIgnoreCase))
+                   .ToList();
         }
 
         /// <summary>
@@ -130,9 +109,13 @@ namespace SmartStore.Services.Shipping
         /// </summary>
         /// <param name="systemName">System name</param>
         /// <returns>Found Shipping rate computation method</returns>
-		public virtual Provider<IShippingRateComputationMethod> LoadShippingRateComputationMethodBySystemName(string systemName, int storeId = 0)
+        public virtual IShippingRateComputationMethod LoadShippingRateComputationMethodBySystemName(string systemName)
         {
-			return _providerManager.GetProvider<IShippingRateComputationMethod>(systemName, storeId);
+            var descriptor = _pluginFinder.GetPluginDescriptorBySystemName<IShippingRateComputationMethod>(systemName);
+            if (descriptor != null)
+                return descriptor.Instance<IShippingRateComputationMethod>();
+
+            return null;
         }
 
         /// <summary>
@@ -140,9 +123,12 @@ namespace SmartStore.Services.Shipping
         /// </summary>
 		/// <param name="storeId">Load records allows only in specified store; pass 0 to load all records</param>
         /// <returns>Shipping rate computation methods</returns>
-		public virtual IEnumerable<Provider<IShippingRateComputationMethod>> LoadAllShippingRateComputationMethods(int storeId = 0)
+		public virtual IList<IShippingRateComputationMethod> LoadAllShippingRateComputationMethods(int storeId = 0)
         {
-			return _providerManager.GetAllProviders<IShippingRateComputationMethod>(storeId);
+            return _pluginFinder
+				.GetPlugins<IShippingRateComputationMethod>()
+				.Where(x => storeId == 0 || _settingService.GetSettingByKey<string>(x.PluginDescriptor.GetSettingKey("LimitedToStores")).ToIntArrayContains(storeId, true))
+				.ToList();
         }
 
         #endregion
@@ -357,7 +343,8 @@ namespace SmartStore.Services.Shipping
         /// <param name="allowedShippingRateComputationMethodSystemName">Filter by shipping rate computation method identifier; null to load shipping options of all shipping rate computation methods</param>
 		/// <param name="storeId">Load records allows only in specified store; pass 0 to load all records</param>
         /// <returns>Shipping options</returns>
-		public virtual GetShippingOptionResponse GetShippingOptions(IList<OrganizedShoppingCartItem> cart, Address shippingAddress, string allowedShippingRateComputationMethodSystemName = "", int storeId = 0)
+		public virtual GetShippingOptionResponse GetShippingOptions(IList<OrganizedShoppingCartItem> cart,
+			Address shippingAddress, string allowedShippingRateComputationMethodSystemName = "", int storeId = 0)
         {
             if (cart == null)
                 throw new ArgumentNullException("cart");
@@ -369,7 +356,7 @@ namespace SmartStore.Services.Shipping
             var shippingRateComputationMethods = LoadActiveShippingRateComputationMethods(storeId)
                 .Where(srcm => 
                     String.IsNullOrWhiteSpace(allowedShippingRateComputationMethodSystemName) || 
-                    allowedShippingRateComputationMethodSystemName.Equals(srcm.Metadata.SystemName, StringComparison.InvariantCultureIgnoreCase))
+                    allowedShippingRateComputationMethodSystemName.Equals(srcm.PluginDescriptor.SystemName, StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
             if (shippingRateComputationMethods.Count == 0)
                 throw new SmartException("Shipping rate computation method could not be loaded");
@@ -377,11 +364,11 @@ namespace SmartStore.Services.Shipping
             //get shipping options
             foreach (var srcm in shippingRateComputationMethods)
             {
-                var getShippingOptionResponse = srcm.Value.GetShippingOptions(getShippingOptionRequest);
+                var getShippingOptionResponse = srcm.GetShippingOptions(getShippingOptionRequest);
                 foreach (var so2 in getShippingOptionResponse.ShippingOptions)
                 {
                     //system name
-                    so2.ShippingRateComputationMethodSystemName = srcm.Metadata.SystemName;
+                    so2.ShippingRateComputationMethodSystemName = srcm.PluginDescriptor.SystemName;
                     //round
                     if (_shoppingCartSettings.RoundPricesDuringCalculation)
                         so2.Rate = Math.Round(so2.Rate, 2);
@@ -394,7 +381,7 @@ namespace SmartStore.Services.Shipping
                     foreach (string error in getShippingOptionResponse.Errors)
                     {
                         result.AddError(error);
-						_logger.Warning(string.Format("Shipping ({0}). {1}", srcm.Metadata.FriendlyName, error));
+                        _logger.Warning(string.Format("Shipping ({0}). {1}", srcm.PluginDescriptor.FriendlyName, error));
                     }
                 }
             }

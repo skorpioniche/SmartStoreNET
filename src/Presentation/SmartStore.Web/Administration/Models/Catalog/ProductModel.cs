@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
-using AutoMapper;
 using FluentValidation.Attributes;
 using SmartStore.Admin.Models.Customers;
 using SmartStore.Admin.Models.Stores;
 using SmartStore.Admin.Validators.Catalog;
+using SmartStore.Core.Domain.Catalog;
 using SmartStore.Core.Domain.Discounts;
 using SmartStore.Web.Framework;
 using SmartStore.Web.Framework.Localization;
@@ -16,7 +17,7 @@ using Telerik.Web.Mvc;
 namespace SmartStore.Admin.Models.Catalog
 {
     [Validator(typeof(ProductValidator))]
-    public class ProductModel : TabbableModel, ILocalizedModel<ProductLocalizedModel>
+    public class ProductModel : EntityModelBase, ILocalizedModel<ProductLocalizedModel>
     {
         public ProductModel()
         {
@@ -185,9 +186,6 @@ namespace SmartStore.Admin.Models.Catalog
 
 		[SmartResourceDisplayName("Admin.Catalog.Products.Fields.AdditionalShippingCharge")]
 		public decimal AdditionalShippingCharge { get; set; }
-
-		[SmartResourceDisplayName("Admin.Catalog.Products.Fields.IsEsd")]
-		public bool IsEsd { get; set; }
 
 		[SmartResourceDisplayName("Admin.Catalog.Products.Fields.IsTaxExempt")]
 		public bool IsTaxExempt { get; set; }
@@ -725,7 +723,7 @@ namespace SmartStore.Admin.Models.Catalog
 			public bool IsRequired { get; set; }
 
 			public int AttributeControlTypeId { get; set; }
-            [SmartResourceDisplayName("Admin.Catalog.Attributes.AttributeControlType")]
+			[SmartResourceDisplayName("Admin.Catalog.Products.ProductVariantAttributes.Attributes.Fields.AttributeControlType")]
 			[UIHint("AttributeControlType")]
 			public string AttributeControlType { get; set; }
 

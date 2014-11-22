@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using SmartStore.Core;
 using SmartStore.Core.Infrastructure;
 using SmartStore.Services.Common;
@@ -45,38 +46,24 @@ namespace SmartStore.Web.Framework.Themes
 				return string.Empty;
 			}
 
-			string areaName = controllerContext.RouteData.GetAreaName();
+			string areaName = GetAreaName(controllerContext.RouteData);
 			bool isArea = !string.IsNullOrEmpty(areaName);
 
-			if (isArea)
+			// Little hack to get sm's admin area to be in /Administration/ instead of /SmartStore/Admin/ or Areas/Admin/
+			if (isArea && areaName.Equals("admin", StringComparison.InvariantCultureIgnoreCase))
 			{
-				var isAdminArea = areaName.IsCaseInsensitiveEqual("admin");
-
-				// admin area does not support mobile devices
-				if (isAdminArea && mobile)
+				//admin area does not support mobile devices
+				if (mobile)
 				{
 					searchedLocations = new string[0];
 					return string.Empty;
 				}
+				var newLocations = areaLocations.ToList();
 
-				// "ExtraAreaViewLocations" gets injected by AdminThemedAttribute
-				var extraAreaViewLocations = controllerContext.RouteData.DataTokens["ExtraAreaViewLocations"] as string[];
+				newLocations.Insert(0, "~/Administration/Views/{1}/{0}.cshtml");
+				newLocations.Insert(0, "~/Administration/Views/Shared/{0}.cshtml");
 
-				if (extraAreaViewLocations != null && extraAreaViewLocations.Length > 0)
-				{
-					var newLocations = areaLocations.ToList();
-					if (isAdminArea)
-					{
-						// the admin area cannot fallback to itself. Prepend to list.
-						extraAreaViewLocations.Reverse().Each(x => newLocations.Insert(0, x));
-					}
-					else
-					{
-						newLocations.AddRange(extraAreaViewLocations);
-					}
-
-					areaLocations = newLocations.ToArray();
-				}
+				areaLocations = newLocations.ToArray();
 			}
 
 			List<ViewLocation> viewLocations = GetViewLocations(locations, isArea ? areaLocations : null);
@@ -215,10 +202,51 @@ namespace SmartStore.Web.Framework.Themes
 			return result ?? "en";
 		}
 
-		protected virtual string GetCurrentThemeName(ControllerContext controllerContext)
+		protected virtual string GetCurrentTheme(ControllerContext controllerContext, bool mobile)
 		{
-			var theme = EngineContext.Current.Resolve<IThemeContext>().CurrentTheme;
-			return theme.ThemeName;
+			// codehint: sm-edit (ThemeOverride)
+			object themeOverride;
+			if (controllerContext.RouteData.DataTokens.TryGetValue("ThemeOverride", out themeOverride))
+			{
+				var theme = themeOverride as string;
+				if (!string.IsNullOrEmpty(theme))
+				{
+					return theme;
+				}
+			}
+
+			var themeContext = EngineContext.Current.Resolve<IThemeContext>();
+			if (mobile)
+				//mobile theme
+				return themeContext.WorkingMobileTheme;
+			else
+				//desktop theme
+				return themeContext.WorkingDesktopTheme;
+		}
+
+		protected virtual string GetAreaName(RouteData routeData)
+		{
+			object obj2;
+			if (routeData.DataTokens.TryGetValue("area", out obj2))
+			{
+				return (obj2 as string);
+			}
+			return GetAreaName(routeData.Route);
+		}
+
+		protected virtual string GetAreaName(RouteBase route)
+		{
+			var area = route as IRouteWithArea;
+			if (area != null)
+			{
+				return area.Area;
+			}
+			var route2 = route as Route;
+			if ((route2 != null) && (route2.DataTokens != null))
+			{
+				return (route2.DataTokens["area"] as string);
+			}
+			return null;
 		}
 
 		protected virtual ViewEngineResult FindThemeableView(ControllerContext controllerContext, string viewName, string masterName, bool useCache, bool mobile)
@@ -234,7 +262,7 @@ namespace SmartStore.Web.Framework.Themes
 				throw new ArgumentException("View name cannot be null or empty.", "viewName");
 			}
 
-			var theme =  GetCurrentThemeName(controllerContext);
+			var theme = GetCurrentTheme(controllerContext, mobile);
 
 			string controllerName = controllerContext.RouteData.GetRequiredString("controller");
 			string viewPath = this.GetPath(controllerContext, this.ViewLocationFormats, this.AreaViewLocationFormats, "ViewLocationFormats", viewName, controllerName, theme, "View", useCache, mobile, out viewLocationsSearched);
@@ -263,7 +291,7 @@ namespace SmartStore.Web.Framework.Themes
 				throw new ArgumentException("Partial view name cannot be null or empty.", "partialViewName");
 			}
 
-			var theme = GetCurrentThemeName(controllerContext);
+			var theme = GetCurrentTheme(controllerContext, mobile);
 
 			string controllerName = controllerContext.RouteData.GetRequiredString("controller");
 			string partialPath = this.GetPath(controllerContext, this.PartialViewLocationFormats, this.AreaPartialViewLocationFormats, "PartialViewLocationFormats", partialViewName, controllerName, theme, "Partial", useCache, mobile, out searched);
@@ -281,16 +309,17 @@ namespace SmartStore.Web.Framework.Themes
 
 		public override ViewEngineResult FindView(ControllerContext controllerContext, string viewName, string masterName, bool useCache)
 		{
-			bool isMobileDevice = this.IsMobileDevice();
+			var mobileDeviceHelper = EngineContext.Current.Resolve<IMobileDeviceHelper>();
+			bool useMobileDevice = this.IsMobileDevice();
 
-			string overrideViewName = isMobileDevice ?
+			string overrideViewName = useMobileDevice ?
 				string.Format("{0}.{1}", viewName, _mobileViewModifier)
 				: viewName;
 
-			ViewEngineResult result = FindThemeableView(controllerContext, overrideViewName, masterName, useCache, isMobileDevice);
+			ViewEngineResult result = FindThemeableView(controllerContext, overrideViewName, masterName, useCache, useMobileDevice);
 
 			// If we're looking for a Mobile view and couldn't find it try again without modifying the viewname
-			if (isMobileDevice && (result == null || result.View == null))
+			if (useMobileDevice && (result == null || result.View == null))
 			{
 				result = FindThemeableView(controllerContext, viewName, masterName, useCache, false);
 			}
@@ -300,16 +329,17 @@ namespace SmartStore.Web.Framework.Themes
 
 		public override ViewEngineResult FindPartialView(ControllerContext controllerContext, string partialViewName, bool useCache)
 		{
-			bool isMobileDevice = this.IsMobileDevice();
+			var mobileDeviceHelper = EngineContext.Current.Resolve<IMobileDeviceHelper>();
+			bool useMobileDevice = this.IsMobileDevice();
 
-			string overrideViewName = isMobileDevice ?
+			string overrideViewName = useMobileDevice ?
 				string.Format("{0}.{1}", partialViewName, _mobileViewModifier)
 				: partialViewName;
 
-			ViewEngineResult result = FindThemeablePartialView(controllerContext, overrideViewName, useCache, isMobileDevice);
+			ViewEngineResult result = FindThemeablePartialView(controllerContext, overrideViewName, useCache, useMobileDevice);
 
 			// If we're looking for a Mobile view and couldn't find it try again without modifying the viewname
-			if (isMobileDevice && (result == null || result.View == null))
+			if (useMobileDevice && (result == null || result.View == null))
 			{
 				result = FindThemeablePartialView(controllerContext, partialViewName, useCache, false);
 			}

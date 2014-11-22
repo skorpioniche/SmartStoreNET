@@ -73,8 +73,7 @@ namespace SmartStore.Data.Tests.Orders
                 ShippingMethod = "ShippingMethod1",
                 ShippingRateComputationMethodSystemName="ShippingRateComputationMethodSystemName1",
                 Deleted = false,
-				CreatedOnUtc = new DateTime(2010, 01, 04),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 04)
             };
 
             var fromDb = SaveAndLoadEntity(order);
@@ -141,8 +140,7 @@ namespace SmartStore.Data.Tests.Orders
                 Customer = GetTestCustomer(),
                 BillingAddress = GetTestBillingAddress(),
                 ShippingAddress = GetTestShippingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 04),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 04)
             };
 
             var fromDb = SaveAndLoadEntity(order);
@@ -168,8 +166,7 @@ namespace SmartStore.Data.Tests.Orders
                     CreatedOnUtc = new DateTime(2010, 01, 01)
                 },
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
 
             var fromDb = SaveAndLoadEntity(order);
@@ -190,8 +187,7 @@ namespace SmartStore.Data.Tests.Orders
                 OrderGuid = Guid.NewGuid(),
                 Customer = testCustomer,
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
             order.DiscountUsageHistory.Add
                 (
@@ -219,8 +215,7 @@ namespace SmartStore.Data.Tests.Orders
                 OrderGuid = Guid.NewGuid(),
                 Customer = testCustomer,
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
             order.GiftCardUsageHistory.Add
                 (
@@ -247,8 +242,7 @@ namespace SmartStore.Data.Tests.Orders
                 OrderGuid = Guid.NewGuid(),
                 Customer = GetTestCustomer(),
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
             order.OrderNotes.Add
                 (
@@ -274,8 +268,7 @@ namespace SmartStore.Data.Tests.Orders
                 OrderGuid = Guid.NewGuid(),
                 Customer = GetTestCustomer(),
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
             order.OrderItems.Add
                 (
@@ -301,8 +294,7 @@ namespace SmartStore.Data.Tests.Orders
                 OrderGuid = Guid.NewGuid(),
                 Customer = GetTestCustomer(),
                 BillingAddress = GetTestBillingAddress(),
-				CreatedOnUtc = new DateTime(2010, 01, 01),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 01, 01)
             };
             order.Shipments.Add
                 (

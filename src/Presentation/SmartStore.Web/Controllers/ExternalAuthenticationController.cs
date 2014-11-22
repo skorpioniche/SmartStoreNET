@@ -43,14 +43,15 @@ namespace SmartStore.Web.Controllers
             //model
             var model = new List<ExternalAuthenticationMethodModel>();
 
-			foreach (var eam in _openAuthenticationService.LoadActiveExternalAuthenticationMethods(_storeContext.CurrentStore.Id))
+			foreach (var eam in _openAuthenticationService
+				 .LoadActiveExternalAuthenticationMethods(_storeContext.CurrentStore.Id))
             {
                 var eamModel = new ExternalAuthenticationMethodModel();
 
                 string actionName;
                 string controllerName;
                 RouteValueDictionary routeValues;
-                eam.Value.GetPublicInfoRoute(out actionName, out controllerName, out routeValues);
+                eam.GetPublicInfoRoute(out actionName, out controllerName, out routeValues);
                 eamModel.ActionName = actionName;
                 eamModel.ControllerName = controllerName;
                 eamModel.RouteValues = routeValues;

@@ -15,13 +15,10 @@
             @if (Model.DisplayPdfInvoice)
             {
                 <a href="@Url.Action("PdfInvoice", new { orderId = Model.Id })" class="btn">
-					<i class="fa fa-arrow-circle-o-down"></i>&nbsp;@T("Admin.Orders.PdfInvoice")
+					<i class="icon-download-alt"></i>&nbsp;@T("Admin.Orders.PdfInvoice")
 				</a>
             }
-            <button type="submit" id="order-delete" class="btn btn-danger">
-				<i class="fa fa-trash-o"></i>
-				@T("Admin.Common.Delete")
-			</button>
+            <button type="submit" id="order-delete" class="btn btn-danger"><i class="icon-trash icon-white"></i>&nbsp;@T("Admin.Common.Delete")</button>
             <input type="submit" id="btnRefreshPage" name="btnRefreshPage" style="display: none" />
         </div>
     </div>
@@ -160,14 +157,14 @@
                 @if (Model.CanCancelOrder)
                 {
                     <button type="submit" name="cancelorder" id="cancelorder" class="btn btn-danger" value="@T("Admin.Orders.Fields.OrderStatus.Cancel")" onclick="return confirm('@T("Admin.Common.AreYouSure")');">
-						<i class="fa fa-times"></i>&nbsp;@T("Admin.Orders.Fields.OrderStatus.Cancel")
+						<i class="icon-remove"></i>&nbsp;@T("Admin.Orders.Fields.OrderStatus.Cancel")
 					</button>
                 }
 				
 				@if (Model.CanCompleteOrder)
 				{
                     <button type="submit" name="completeorder" id="completeorder" class="btn btn-primary" value="@T("Enums.SmartStore.Core.Domain.Orders.OrderStatus.Complete")" onclick="return confirm('@T("Admin.Common.AreYouSure")');">
-						<i class="fa fa-check"></i>&nbsp;@T("Enums.SmartStore.Core.Domain.Orders.OrderStatus.Complete")
+						<i class="icon-ok"></i>&nbsp;@T("Enums.SmartStore.Core.Domain.Orders.OrderStatus.Complete")
 					</button>
 				}
             </td>
@@ -196,17 +193,6 @@
                 @Model.StoreName
             </td>
         </tr>
-		@if (Model.AffiliateId != 0)
-		{
-			<tr>
-				<td class="adminTitle">
-					@Html.SmartLabelFor(model => model.AffiliateId)
-				</td>
-				<td class="adminData">
-					<a href="@Url.Action("Edit", "Affiliate", new { id = Model.AffiliateId })">@Model.AffiliateFullName</a>
-				</td>
-			</tr>
-		}
         <tr class="adminSeparator">
             <td colspan="2">
                 <hr />
@@ -217,7 +203,7 @@
                 @Html.SmartLabelFor(model => model.CustomerId)
             </td>
             <td class="adminData">
-                <a href="@Url.Action("Edit", "Customer", new { id = Model.CustomerId })">@Model.CustomerName</a>
+                <a href="@Url.Action("Edit", "Customer", new { id = Model.CustomerId })">@T("Admin.Common.View")</a>
             </td>
         </tr>
         <tr>
@@ -250,6 +236,17 @@
                 </td>
             </tr>
         }        
+    @if (Model.AffiliateId.HasValue && Model.AffiliateId.Value > 0)
+    {
+    <tr>
+        <td class="adminTitle">
+            @Html.SmartLabelFor(model => model.AffiliateId)
+        </td>
+        <td class="adminData">
+            <a href="@Url.Action("Edit", "Affiliate", new { id = Model.AffiliateId.Value })">@Model.AffiliateId.Value - @T("Admin.Common.View")</a>
+        </td>
+    </tr>
+    }
         @if (Model.AllowCustomersToSelectTaxDisplayType || Model.TaxDisplayType == TaxDisplayType.IncludingTax)
         {
             <tr>
@@ -506,13 +503,13 @@
         <tr>
             <td colspan="2">
                 <button type="submit" name="btnEditOrderTotals" onclick="toggleOrderTotals(true);return false;" id="btnEditOrderTotals" class="btn" style="margin-top:5px;">
-					<i class="fa fa-pencil-square-o"></i>&nbsp;@T("Admin.Orders.Fields.EditOrderTotals")
+					<i class="icon-edit"></i>&nbsp;@T("Admin.Orders.Fields.EditOrderTotals")
 				</button>
                 <button type="submit" name="btnSaveOrderTotals" id="btnSaveOrderTotals" class="btn" value="@T("Admin.Orders.Fields.SaveOrderTotals")" onclick="return confirm('@T("Admin.Common.AreYouSure")');">
-					<i class="fa fa-check"></i>&nbsp;@T("Admin.Orders.Fields.SaveOrderTotals")
+					<i class="icon-ok"></i>&nbsp;@T("Admin.Orders.Fields.SaveOrderTotals")
 				</button>
                 <button type="submit" name="btnCancelOrderTotals" onclick="toggleOrderTotals(false);return false;" id="btnCancelOrderTotals" class="btn">
-					<i class="fa fa-times"></i>&nbsp;@T("Admin.Common.Cancel")
+					<i class="icon-remove"></i>&nbsp;@T("Admin.Common.Cancel")
 				</button>
             </td>
         </tr>
@@ -598,13 +595,13 @@
             <tr>
                 <td colspan="2">
                     <button type="submit" name="btnEditCC" value="@T("Admin.Orders.Fields.EditCC")" onclick="toggleCC(true);return false;" id="btnEditCC" class="btn">
-						<i class="fa fa-pencil-square-o"></i>&nbsp;@T("Admin.Orders.Fields.EditCC")
+						<i class="icon icon-edit"></i>&nbsp;@T("Admin.Orders.Fields.EditCC")
 					</button>
                     <button type="submit" name="btnSaveCC" value="@T("Admin.Orders.Fields.SaveCC")" id="btnSaveCC" class="btn" onclick="return confirm('@T("Admin.Common.AreYouSure")');">
-						<i class="fa fa-check"></i>&nbsp;@T("Admin.Orders.Fields.SaveCC")
+						<i class="icon icon-ok"></i>&nbsp;@T("Admin.Orders.Fields.SaveCC")
 					</button>
                     <button type="submit" name="btnCancelCC" value="@T("Admin.Orders.Fields.CancelCC")" onclick="toggleCC(false);return false;" id="btnCancelCC" class="btn">
-						<i class="fa fa-times"></i>&nbsp;@T("Admin.Orders.Fields.CancelCC")
+						<i class="icon icon-remove"></i>&nbsp;@T("Admin.Orders.Fields.CancelCC")
 					</button>
                 </td>
             </tr>
@@ -704,13 +701,13 @@
             <tr>
                 <td colspan="2">
                     <button type="submit" name="btnEditDD" value="@T("Admin.Orders.Fields.EditDD")" onclick="toggleDD(true);return false;" id="btnEditDD" class="btn">
-						<i class="fa fa-pencil-square-o"></i>&nbsp;@T("Admin.Orders.Fields.EditDD")
+						<i class="icon icon-edit"></i>&nbsp;@T("Admin.Orders.Fields.EditDD")
 					</button>
                     <button type="submit" name="btnSaveDD" value="@T("Admin.Orders.Fields.SaveDD")" id="btnSaveDD" class="btn" onclick="return confirm('@T("Admin.Common.AreYouSure")');">
-						<i class="fa fa-check"></i>&nbsp;@T("Admin.Orders.Fields.SaveDD")
+						<i class="icon icon-ok"></i>&nbsp;@T("Admin.Orders.Fields.SaveDD")
 					</button>
                     <button type="submit" name="btnCancelDD" value="@T("Admin.Orders.Fields.CancelDD")" onclick="toggleDD(false);return false;" id="btnCancelDD" class="btn">
-						<i class="fa fa-times"></i>&nbsp;@T("Admin.Orders.Fields.CancelDD")
+						<i class="icon icon-remove"></i>&nbsp;@T("Admin.Orders.Fields.CancelDD")
 					</button>
                 </td>
             </tr>
@@ -720,6 +717,8 @@
 				</td>
 			</tr>
         }
+        
+        @*codehint: sm-add end*@
 
         @if (Model.DisplayPurchaseOrderNumber)
         {
@@ -859,23 +858,6 @@
                 @Html.DisplayFor(model => model.UpdatedOn)
             </td>
         </tr>
-        <tr class="adminSeparator">
-            <td colspan="2">
-                <hr />
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                @if (Model.CustomerComment.HasValue())
-                {
-                    <h4>@T("Admin.Order.CustomerComment.Heading")</h4>
-                    <div class="alert alert-info fade in">
-                        <button class="close" data-dismiss="alert">&#215;</button>
-                        @Html.Raw(Model.CustomerComment)
-                    </div>
-                }
-            </td>
-        </tr>
     </table>
 }
 @helper TabBillingInfo()
@@ -1011,7 +993,7 @@
                     }
                     <tr>
                         <td colspan="2" style="padding-top: 8px;">
-                            <a href="@Url.Action("AddressEdit", new { addressId = Model.BillingAddress.Id, orderId = Model.Id })" class="btn"><i class="fa fa-pencil-square-o"></i>&nbsp;@T("Admin.Common.Edit")</a>
+                            <a href="@Url.Action("AddressEdit", new { addressId = Model.BillingAddress.Id, orderId = Model.Id })" class="btn"><i class="icon-edit"></i>&nbsp;@T("Admin.Common.Edit")</a>
                         </td>
                     </tr>
                 </table>
@@ -1155,7 +1137,7 @@
                     }
                     <tr>
                         <td colspan="2" style="padding-top: 8px;">
-                            <a href="@Url.Action("AddressEdit", new { addressId = Model.ShippingAddress.Id, orderId = Model.Id })" class="btn"><i class="fa fa-pencil-square-o"></i>&nbsp;@T("Admin.Common.Edit")</a>
+                            <a href="@Url.Action("AddressEdit", new { addressId = Model.ShippingAddress.Id, orderId = Model.Id })" class="btn"><i class="icon-edit"></i>&nbsp;@T("Admin.Common.Edit")</a>
                         </td>
                     </tr>
                 </table>
@@ -1229,7 +1211,7 @@
                 <td>
                     <button type="submit" id="btnAddNewShipment" name="btnAddNewShipment" class="btn btn-below" value="@T("Admin.Orders.Shipments.AddNew")"
 						onclick="javascript:setLocation('@(Url.Action("AddShipment", "Order", new { orderId = Model.Id }))'); return false;">
-						<i class="fa fa-plus"></i>&nbsp;@T("Admin.Orders.Shipments.AddNew")
+						<i class="icon-plus"></i>&nbsp;@T("Admin.Orders.Shipments.AddNew")
 					</button>
                 </td>
             </tr>
@@ -1541,7 +1523,7 @@
                                         </table>
                                     </div>
                                 </td>
-                                <td align="center" style="width: 14%;">
+                                <td align="center" style="width: 15%;">
                                     @if (Model.AllowCustomersToSelectTaxDisplayType)
                                     {
                                         @item.DiscountInclTax
@@ -1589,7 +1571,7 @@
                                         </table>
                                     </div>
                                 </td>
-                                <td align="center" style="width: 14%;">
+                                <td align="center" style="width: 15%;">
                                     @if (Model.AllowCustomersToSelectTaxDisplayType)
                                     {
                                         @item.SubTotalInclTax
@@ -1637,7 +1619,7 @@
                                         </table>
                                     </div>
                                 </td>
-                                <td align="center" style="width: 22%;">
+                                <td align="center" style="width: 20%;">
                                     <input type="submit" name="btnEditOrderItem@(item.Id)" value="@T("Admin.Common.Edit")" id="btnEditOrderItem@(item.Id)"
 										class="btn" onclick="toggleOrderItemEdit(@(item.Id), true);return false;" />
                                     
@@ -1676,7 +1658,7 @@
             <td>
                 <button type="submit" id="btnAddNewProduct" name="btnAddNewProduct" class="btn btn-below" value="@T("Admin.Orders.Products.AddNew")"
 						onclick="javascript:setLocation('@(Url.Action("AddProductToOrder", "Order", new { orderId = Model.Id }))'); return false;">
-					<i class="fa fa-plus"></i>&nbsp;@T("Admin.Orders.Products.AddNew")
+					<i class="icon-plus"></i>&nbsp;@T("Admin.Orders.Products.AddNew")
 				</button>
             </td>
         </tr>
@@ -1744,7 +1726,7 @@
 			</td>
             <td class="adminData">
                 <button type="button" name="addOrderNote" id="addOrderNote" class="btn">
-					<i class="fa fa-plus"></i>&nbsp;@T("Admin.Orders.OrderNotes.AddButton")
+					<i class="icon-plus icon-white"></i>&nbsp;@T("Admin.Orders.OrderNotes.AddButton")
 				</button>
             </td>
         </tr>

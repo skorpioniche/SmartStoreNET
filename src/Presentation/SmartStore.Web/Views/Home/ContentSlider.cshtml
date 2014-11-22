@@ -22,8 +22,11 @@
 
     if (isActive) 
     {
-		Html.AddCssFileParts(false, Html.ThemePath("Content/slider.less"));
-		Html.AddScriptParts("~/bundles/sequencejs");
+        Html.AddCssFileParts(false, Html.ThemePath("Content/slider.less"));
+        Html.AddScriptParts(
+            "~/Scripts/jquery.backgroundpos.js",
+            "~/Scripts/jquery.sequence.js",
+            "~/Scripts/jquery.sequence.custom.js");
     }
 }
 

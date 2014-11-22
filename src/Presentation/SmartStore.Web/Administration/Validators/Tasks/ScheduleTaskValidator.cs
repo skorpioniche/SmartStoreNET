@@ -5,7 +5,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Tasks
 {
-	public partial class ScheduleTaskValidator : AbstractValidator<ScheduleTaskModel>
+    public class ScheduleTaskValidator : AbstractValidator<ScheduleTaskModel>
     {
         public ScheduleTaskValidator(ILocalizationService localizationService)
         {

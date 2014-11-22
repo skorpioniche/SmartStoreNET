@@ -38,9 +38,9 @@ namespace SmartStore.Admin.Models.Orders
         public int? TaxCategoryId { get; set; }
         public IList<SelectListItem> AvailableTaxCategories { get; set; }
 
-        [SmartResourceDisplayName("Admin.Catalog.Attributes.AttributeControlType")]
+        [SmartResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.AttributeControlType")]
         public int AttributeControlTypeId { get; set; }
-        [SmartResourceDisplayName("Admin.Catalog.Attributes.AttributeControlType")]
+        [SmartResourceDisplayName("Admin.Catalog.Attributes.CheckoutAttributes.Fields.AttributeControlType")]
         [AllowHtml]
         public string AttributeControlTypeName { get; set; }
 

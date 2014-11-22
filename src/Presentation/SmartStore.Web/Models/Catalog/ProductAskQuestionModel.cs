@@ -7,8 +7,10 @@ using SmartStore.Web.Validators.Catalog;
 namespace SmartStore.Web.Models.Catalog
 {
     [Validator(typeof(ProductAskQuestionValidator))]
-    public partial class ProductAskQuestionModel : EntityModelBase
+    public partial class ProductAskQuestionModel : ModelBase
     {
+        public int ProductId { get; set; }
+
         public string ProductName { get; set; }
 
         public string ProductSeName { get; set; }

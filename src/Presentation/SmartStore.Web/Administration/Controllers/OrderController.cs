@@ -2,23 +2,20 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Web.Mvc;
 using SmartStore.Admin.Models.Orders;
 using SmartStore.Core;
 using SmartStore.Core.Domain.Catalog;
 using SmartStore.Core.Domain.Common;
 using SmartStore.Core.Domain.Directory;
+using SmartStore.Core.Domain.Media;
 using SmartStore.Core.Domain.Orders;
 using SmartStore.Core.Domain.Payments;
 using SmartStore.Core.Domain.Shipping;
 using SmartStore.Core.Domain.Tax;
-using SmartStore.Core.Events;
 using SmartStore.Core.Html;
-using SmartStore.Services.Affiliates;
 using SmartStore.Services.Catalog;
 using SmartStore.Services.Common;
-using SmartStore.Services.Customers;
 using SmartStore.Services.Directory;
 using SmartStore.Services.ExportImport;
 using SmartStore.Services.Helpers;
@@ -30,12 +27,15 @@ using SmartStore.Services.Payments;
 using SmartStore.Services.Security;
 using SmartStore.Services.Shipping;
 using SmartStore.Services.Stores;
-using SmartStore.Services.Tax;
+using SmartStore.Services.Seo;
 using SmartStore.Web.Framework;
 using SmartStore.Web.Framework.Controllers;
 using SmartStore.Web.Framework.Mvc;
-using SmartStore.Web.Framework.Plugins;
 using Telerik.Web.Mvc;
+using SmartStore.Services.Tax;
+using SmartStore.Core.Events;
+using SmartStore.Services.Customers;
+using System.Net.Mime;
 
 namespace SmartStore.Admin.Controllers
 {
@@ -77,8 +77,6 @@ namespace SmartStore.Admin.Controllers
 		private readonly IPriceCalculationService _priceCalculationService;
 		private readonly IEventPublisher _eventPublisher;
 		private readonly ICustomerService _customerService;
-		private readonly PluginMediator _pluginMediator;
-		private readonly IAffiliateService _affiliateService;
 
         private readonly CatalogSettings _catalogSettings;
         private readonly CurrencySettings _currencySettings;
@@ -87,7 +85,7 @@ namespace SmartStore.Admin.Controllers
         private readonly PdfSettings _pdfSettings;
         private readonly AddressSettings _addressSettings;
 
-        private readonly ICheckoutAttributeFormatter _checkoutAttributeFormatter;
+        private readonly ICheckoutAttributeFormatter _checkoutAttributeFormatter; //codehint: sm-add
         
         #endregion
 
@@ -113,8 +111,6 @@ namespace SmartStore.Admin.Controllers
 			IPriceCalculationService priceCalculationService,
 			IEventPublisher eventPublisher,
 			ICustomerService customerService,
-			PluginMediator pluginMediator,
-			IAffiliateService affiliateService,
             CatalogSettings catalogSettings, CurrencySettings currencySettings, TaxSettings taxSettings,
             MeasureSettings measureSettings, PdfSettings pdfSettings, AddressSettings addressSettings)
 		{
@@ -151,8 +147,6 @@ namespace SmartStore.Admin.Controllers
 			this._priceCalculationService = priceCalculationService;
 			this._eventPublisher = eventPublisher;
 			this._customerService = customerService;
-			this._pluginMediator = pluginMediator;
-			this._affiliateService = affiliateService;
 
             this._catalogSettings = catalogSettings;
             this._currencySettings = currencySettings;
@@ -161,7 +155,7 @@ namespace SmartStore.Admin.Controllers
             this._pdfSettings = pdfSettings;
             this._addressSettings = addressSettings;
 
-            this._checkoutAttributeFormatter = checkoutAttributeFormatter;
+            this._checkoutAttributeFormatter = checkoutAttributeFormatter;  //codehint: sm-add
 		}
         
         #endregion
@@ -183,9 +177,8 @@ namespace SmartStore.Admin.Controllers
             model.OrderStatus = order.OrderStatus.GetLocalizedEnum(_localizationService, _workContext);
             model.OrderNumber = order.GetOrderNumber();
             model.OrderGuid = order.OrderGuid;
-			model.StoreName = (store != null ? store.Name : "".NaIfEmpty());
+			model.StoreName = store != null ? store.Name : "Unknown";
             model.CustomerId = order.CustomerId;
-			model.CustomerName = order.Customer.GetFullName();
             model.CustomerIp = order.CustomerIp;
             model.VatNumber = order.VatNumber;
             model.CreatedOn = _dateTimeHelper.ConvertToUserTime(order.CreatedOnUtc, DateTimeKind.Utc);
@@ -194,15 +187,7 @@ namespace SmartStore.Admin.Controllers
             model.AllowCustomersToSelectTaxDisplayType = _taxSettings.AllowCustomersToSelectTaxDisplayType;
             model.TaxDisplayType = _taxSettings.TaxDisplayType;
             model.AffiliateId = order.AffiliateId;
-            model.CustomerComment = order.CustomerOrderComment;
-
-			if (order.AffiliateId != 0)
-			{
-				var affiliate = _affiliateService.GetAffiliateById(order.AffiliateId);
-				if (affiliate != null && affiliate.Address != null)
-					model.AffiliateFullName = affiliate.Address.GetFullName();
-			}
-
+            
             #region Order totals
 
             var primaryStoreCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
@@ -333,29 +318,22 @@ namespace SmartStore.Admin.Controllers
 
             //purchase order number (we have to find a better to inject this information because it's related to a certain plugin)
             var pm = _paymentService.LoadPaymentMethodBySystemName(order.PaymentMethodSystemName);
-			if (pm != null)
-			{
-				if (pm.Metadata.SystemName.Equals("Payments.PurchaseOrder", StringComparison.InvariantCultureIgnoreCase))
-				{
-					model.DisplayPurchaseOrderNumber = true;
-					model.PurchaseOrderNumber = order.PurchaseOrderNumber;
-				}
-
-				model.PaymentMethod = "{0} ({1})".FormatWith(_pluginMediator.GetLocalizedFriendlyName(pm.Metadata), order.PaymentMethodSystemName);
-			}
-			else
-			{
-				model.PaymentMethod = order.PaymentMethodSystemName;
-			}
+            if (pm != null && pm.PluginDescriptor.SystemName.Equals("Payments.PurchaseOrder", StringComparison.InvariantCultureIgnoreCase))
+            {
+                model.DisplayPurchaseOrderNumber = true;
+                model.PurchaseOrderNumber = order.PurchaseOrderNumber;
+            }
 
             //payment transaction info
             model.AuthorizationTransactionId = order.AuthorizationTransactionId;
             model.CaptureTransactionId = order.CaptureTransactionId;
             model.SubscriptionTransactionId = order.SubscriptionTransactionId;
+			// codehint: sm-add
 			model.AuthorizationTransactionResult = order.AuthorizationTransactionResult;
 			model.CaptureTransactionResult = order.CaptureTransactionResult;
 
             //payment method info
+            model.PaymentMethod = pm != null ? pm.PluginDescriptor.FriendlyName : order.PaymentMethodSystemName;
             model.PaymentStatus = order.PaymentStatus.GetLocalizedEnum(_localizationService, _workContext);
 
             //payment method buttons
@@ -692,54 +670,6 @@ namespace SmartStore.Admin.Controllers
             }
             return model;
         }
-
-		private void PrepareOrderAddressModel(OrderAddressModel model, Address address)
-		{
-			model.Address = address.ToModel();
-
-			model.Address.FirstNameEnabled = true;
-			model.Address.FirstNameRequired = true;
-			model.Address.LastNameEnabled = true;
-			model.Address.LastNameRequired = true;
-			model.Address.EmailEnabled = true;
-			model.Address.EmailRequired = true;
-			model.Address.CompanyEnabled = _addressSettings.CompanyEnabled;
-			model.Address.CompanyRequired = _addressSettings.CompanyRequired;
-			model.Address.CountryEnabled = _addressSettings.CountryEnabled;
-			model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
-			model.Address.CityEnabled = _addressSettings.CityEnabled;
-			model.Address.CityRequired = _addressSettings.CityRequired;
-			model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
-			model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
-			model.Address.StreetAddress2Enabled = _addressSettings.StreetAddress2Enabled;
-			model.Address.StreetAddress2Required = _addressSettings.StreetAddress2Required;
-			model.Address.ZipPostalCodeEnabled = _addressSettings.ZipPostalCodeEnabled;
-			model.Address.ZipPostalCodeRequired = _addressSettings.ZipPostalCodeRequired;
-			model.Address.PhoneEnabled = _addressSettings.PhoneEnabled;
-			model.Address.PhoneRequired = _addressSettings.PhoneRequired;
-			model.Address.FaxEnabled = _addressSettings.FaxEnabled;
-			model.Address.FaxRequired = _addressSettings.FaxRequired;
-
-			//countries
-			foreach (var c in _countryService.GetAllCountries(true))
-			{
-				model.Address.AvailableCountries.Add(new SelectListItem() { Text = c.Name, Value = c.Id.ToString(), Selected = (c.Id == address.CountryId) });
-			}
-
-			//states
-			var states = address.Country != null ? _stateProvinceService.GetStateProvincesByCountryId(address.Country.Id, true).ToList() : new List<StateProvince>();
-			if (states.Count > 0)
-			{
-				foreach (var s in states)
-				{
-					model.Address.AvailableStates.Add(new SelectListItem() { Text = s.Name, Value = s.Id.ToString(), Selected = (s.Id == address.StateProvinceId) });
-				}
-			}
-			else
-			{
-				model.Address.AvailableStates.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
-			}
-		}
 
         #endregion
 
@@ -1480,11 +1410,10 @@ namespace SmartStore.Admin.Controllers
 
 				_orderProcessingService.AutoUpdateOrderDetails(context);
 
-				// we do not delete order item automatically anymore.
-				//if (oi.Quantity <= 0)
-				//{
-				//	_orderService.DeleteOrderItem(oi);
-				//}
+				if (oi.Quantity <= 0)
+				{
+					_orderService.DeleteOrderItem(oi);
+				}
 
 				TempData[AutoUpdateOrderItemContext.InfoKey] = context.ToString(_localizationService);
 			}
@@ -1513,6 +1442,9 @@ namespace SmartStore.Admin.Controllers
 				UpdateRewardPoints = model.UpdateRewardPoints,
 				UpdateTotals = model.UpdateTotals
 			};
+
+			oi.Quantity = 0;
+			_orderService.UpdateOrder(oi.Order);
 
 			_orderProcessingService.AutoUpdateOrderDetails(context);
 
@@ -1798,7 +1730,7 @@ namespace SmartStore.Admin.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddProductToOrderDetails(int orderId, int productId, bool adjustInventory, bool? updateTotals, FormCollection form)
+        public ActionResult AddProductToOrderDetails(int orderId, int productId, bool adjustInventory, bool updateTotals, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return AccessDeniedView();
@@ -1948,7 +1880,7 @@ namespace SmartStore.Admin.Controllers
                     }
                 }
 
-				if (adjustInventory || (updateTotals ?? false))
+				if (adjustInventory || updateTotals)
 				{
 					var context = new AutoUpdateOrderItemContext()
 					{
@@ -1957,7 +1889,7 @@ namespace SmartStore.Admin.Controllers
 						QuantityOld = 0,
 						QuantityNew = orderItem.Quantity,
 						AdjustInventory = adjustInventory,
-						UpdateTotals = (updateTotals ?? false)
+						UpdateTotals = updateTotals
 					};
 
 					_orderProcessingService.AutoUpdateOrderDetails(context);
@@ -1990,6 +1922,7 @@ namespace SmartStore.Admin.Controllers
 
             var order = _orderService.GetOrderById(orderId);
             if (order == null)
+                //No order found with the specified id
                 return RedirectToAction("List");
 
             var address = _addressService.GetAddressById(addressId);
@@ -1998,8 +1931,42 @@ namespace SmartStore.Admin.Controllers
 
             var model = new OrderAddressModel();
             model.OrderId = orderId;
+            model.Address = address.ToModel();
+            model.Address.FirstNameEnabled = true;
+            model.Address.FirstNameRequired = true;
+            model.Address.LastNameEnabled = true;
+            model.Address.LastNameRequired = true;
+            model.Address.EmailEnabled = true;
+            model.Address.EmailRequired = true;
+            model.Address.CompanyEnabled = _addressSettings.CompanyEnabled;
+            model.Address.CompanyRequired = _addressSettings.CompanyRequired;
+            model.Address.CountryEnabled = _addressSettings.CountryEnabled;
+            model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
+            model.Address.CityEnabled = _addressSettings.CityEnabled;
+            model.Address.CityRequired = _addressSettings.CityRequired;
+            model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
+            model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
+            model.Address.StreetAddress2Enabled = _addressSettings.StreetAddress2Enabled;
+            model.Address.StreetAddress2Required = _addressSettings.StreetAddress2Required;
+            model.Address.ZipPostalCodeEnabled = _addressSettings.ZipPostalCodeEnabled;
+            model.Address.ZipPostalCodeRequired = _addressSettings.ZipPostalCodeRequired;
+            model.Address.PhoneEnabled = _addressSettings.PhoneEnabled;
+            model.Address.PhoneRequired = _addressSettings.PhoneRequired;
+            model.Address.FaxEnabled = _addressSettings.FaxEnabled;
+            model.Address.FaxRequired = _addressSettings.FaxRequired;
 
-			PrepareOrderAddressModel(model, address);
+            //countries
+            foreach (var c in _countryService.GetAllCountries(true))
+                model.Address.AvailableCountries.Add(new SelectListItem() { Text = c.Name, Value = c.Id.ToString(), Selected = (c.Id == address.CountryId) });
+            //states
+            var states = address.Country != null ? _stateProvinceService.GetStateProvincesByCountryId(address.Country.Id, true).ToList() : new List<StateProvince>();
+            if (states.Count > 0)
+            {
+                foreach (var s in states)
+                    model.Address.AvailableStates.Add(new SelectListItem() { Text = s.Name, Value = s.Id.ToString(), Selected = (s.Id == address.StateProvinceId) });
+            }
+            else
+                model.Address.AvailableStates.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
 
             return View(model);
         }
@@ -2025,15 +1992,46 @@ namespace SmartStore.Admin.Controllers
 
 				_eventPublisher.PublishOrderUpdated(order);
 
-				NotifySuccess(_localizationService.GetResource("Admin.Common.DataSuccessfullySaved"));
-
                 return RedirectToAction("AddressEdit", new { addressId = model.Address.Id, orderId = model.OrderId });
             }
 
             //If we got this far, something failed, redisplay form
             model.OrderId = order.Id;
-
-			PrepareOrderAddressModel(model, address);
+            model.Address = address.ToModel();
+            model.Address.FirstNameEnabled = true;
+            model.Address.FirstNameRequired = true;
+            model.Address.LastNameEnabled = true;
+            model.Address.LastNameRequired = true;
+            model.Address.EmailEnabled = true;
+            model.Address.EmailRequired = true;
+            model.Address.CompanyEnabled = _addressSettings.CompanyEnabled;
+            model.Address.CompanyRequired = _addressSettings.CompanyRequired;
+            model.Address.CountryEnabled = _addressSettings.CountryEnabled;
+            model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
+            model.Address.CityEnabled = _addressSettings.CityEnabled;
+            model.Address.CityRequired = _addressSettings.CityRequired;
+            model.Address.StreetAddressEnabled = _addressSettings.StreetAddressEnabled;
+            model.Address.StreetAddressRequired = _addressSettings.StreetAddressRequired;
+            model.Address.StreetAddress2Enabled = _addressSettings.StreetAddress2Enabled;
+            model.Address.StreetAddress2Required = _addressSettings.StreetAddress2Required;
+            model.Address.ZipPostalCodeEnabled = _addressSettings.ZipPostalCodeEnabled;
+            model.Address.ZipPostalCodeRequired = _addressSettings.ZipPostalCodeRequired;
+            model.Address.PhoneEnabled = _addressSettings.PhoneEnabled;
+            model.Address.PhoneRequired = _addressSettings.PhoneRequired;
+            model.Address.FaxEnabled = _addressSettings.FaxEnabled;
+            model.Address.FaxRequired = _addressSettings.FaxRequired;
+            //countries
+            foreach (var c in _countryService.GetAllCountries(true))
+                model.Address.AvailableCountries.Add(new SelectListItem() { Text = c.Name, Value = c.Id.ToString(), Selected = (c.Id == address.CountryId) });
+            //states
+            var states = address.Country != null ? _stateProvinceService.GetStateProvincesByCountryId(address.Country.Id, true).ToList() : new List<StateProvince>();
+            if (states.Count > 0)
+            {
+                foreach (var s in states)
+                    model.Address.AvailableStates.Add(new SelectListItem() { Text = s.Name, Value = s.Id.ToString(), Selected = (s.Id == address.StateProvinceId) });
+            }
+            else
+                model.Address.AvailableStates.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
 
             return View(model);
         }
@@ -2254,7 +2252,7 @@ namespace SmartStore.Admin.Controllers
             else
             {
 				NotifyError(_localizationService.GetResource("Admin.Orders.Shipments.NoProductsSelected"));
-				return RedirectToAction("AddShipment", new { orderId = orderId });
+                return RedirectToAction("AddShipment", new { orderId = orderId });
             }
         }
 
@@ -2711,22 +2709,21 @@ namespace SmartStore.Admin.Controllers
                 return new OrderAverageReportLineSummaryModel()
                 {
                     OrderStatus = x.OrderStatus.GetLocalizedEnum(_localizationService, _workContext),
-                    CountTodayOrders = x.CountTodayOrders,
-                    SumTodayOrders = _priceFormatter.FormatPrice(x.SumTodayOrders, true, false),
-                    SumThisWeekOrders = _priceFormatter.FormatPrice(x.SumThisWeekOrders, true, false),
-                    SumThisMonthOrders = _priceFormatter.FormatPrice(x.SumThisMonthOrders, true, false),
-                    SumThisYearOrders = _priceFormatter.FormatPrice(x.SumThisYearOrders, true, false),
-                    SumAllTimeOrders = _priceFormatter.FormatPrice(x.SumAllTimeOrders, true, false),
+                    CountTodayOrders = x.CountTodayOrders, // codehint: sm-add
+                    SumTodayOrders = _priceFormatter.FormatPrice(x.SumTodayOrders, false /*true*/, false),
+                    SumThisWeekOrders = _priceFormatter.FormatPrice(x.SumThisWeekOrders, false /*true*/, false),
+                    SumThisMonthOrders = _priceFormatter.FormatPrice(x.SumThisMonthOrders, false /*true*/, false),
+                    SumThisYearOrders = _priceFormatter.FormatPrice(x.SumThisYearOrders, false /*true*/, false),
+                    SumAllTimeOrders = _priceFormatter.FormatPrice(x.SumAllTimeOrders, false /*true*/, false),
                 };
             }).ToList();
 
             return model;
         }
-
         [ChildActionOnly]
         public ActionResult OrderAverageReport()
         {
-			var model = GetOrderAverageReportModel();
+            var model = GetOrderAverageReportModel();
             return PartialView(model);
         }
 

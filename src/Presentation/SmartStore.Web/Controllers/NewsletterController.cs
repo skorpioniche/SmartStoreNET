@@ -44,7 +44,7 @@ namespace SmartStore.Web.Controllers
 
         [HttpPost]
         [ValidateInput(false)]
-        public ActionResult Subscribe(bool subscribe, string email)
+        public ActionResult SubscribeNewsletter(bool subscribe, string email)
         {
             string result;
             bool success = false;
@@ -106,10 +106,10 @@ namespace SmartStore.Web.Controllers
         }
 
         public ActionResult SubscriptionActivation(Guid token, bool active)
-        {	
-			var subscription = _newsLetterSubscriptionService.GetNewsLetterSubscriptionByGuid(token);
+        {
+            var subscription = _newsLetterSubscriptionService.GetNewsLetterSubscriptionByGuid(token);
             if (subscription == null)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var model = new SubscriptionActivationModel();
 

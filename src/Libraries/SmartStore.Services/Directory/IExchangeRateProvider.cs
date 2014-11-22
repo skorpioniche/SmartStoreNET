@@ -7,7 +7,7 @@ namespace SmartStore.Services.Directory
     /// <summary>
     /// Exchange rate provider interface
     /// </summary>
-    public partial interface IExchangeRateProvider : IProvider
+    public partial interface IExchangeRateProvider : IPlugin
     {
         /// <summary>
         /// Gets currency live rates

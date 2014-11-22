@@ -22,9 +22,9 @@ namespace SmartStore.Web.Framework.UI
             return this;
         }
 
-        public WindowBuilder LoadContentFrom(string url)
+        public WindowBuilder LoadContentFrom(string value)
         {
-            base.Component.ContentUrl = url;
+            base.Component.ContentUrl = value;
             return this;
         }
 

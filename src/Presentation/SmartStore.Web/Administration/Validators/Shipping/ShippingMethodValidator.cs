@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Shipping
 {
-	public partial class ShippingMethodValidator : AbstractValidator<ShippingMethodModel>
+    public class ShippingMethodValidator : AbstractValidator<ShippingMethodModel>
     {
         public ShippingMethodValidator(ILocalizationService localizationService)
         {

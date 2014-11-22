@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NUnit.Framework;
-using Rhino.Mocks;
+﻿using System.Collections.Generic;
 using SmartStore.Core.Domain.Orders;
 using SmartStore.Core.Domain.Payments;
 using SmartStore.Core.Plugins;
-using SmartStore.Services.Configuration;
-using SmartStore.Services.Localization;
 using SmartStore.Services.Payments;
 using SmartStore.Tests;
+using NUnit.Framework;
+using Rhino.Mocks;
+using SmartStore.Services.Configuration;
+using SmartStore.Services.Localization;
 
 namespace SmartStore.Services.Tests.Payments
 {
@@ -36,7 +34,7 @@ namespace SmartStore.Services.Tests.Payments
 			var localizationService = MockRepository.GenerateMock<ILocalizationService>();
 			localizationService.Expect(ls => ls.GetResource(null)).IgnoreArguments().Return("NotSupported").Repeat.Any();
 
-			_paymentService = new PaymentService(_paymentSettings, pluginFinder, _shoppingCartSettings, _settingService, localizationService, this.ProviderManager);
+			_paymentService = new PaymentService(_paymentSettings, pluginFinder, _shoppingCartSettings, _settingService, localizationService);
         }
 
         [Test]
@@ -44,7 +42,7 @@ namespace SmartStore.Services.Tests.Payments
         {
             var srcm = _paymentService.LoadActivePaymentMethods();
             srcm.ShouldNotBeNull();
-            (srcm.Any()).ShouldBeTrue();
+            (srcm.Count > 0).ShouldBeTrue();
         }
 
         [Test]
@@ -59,7 +57,7 @@ namespace SmartStore.Services.Tests.Payments
         {
             var srcm = _paymentService.LoadActivePaymentMethods();
             srcm.ShouldNotBeNull();
-            (srcm.Any()).ShouldBeTrue();
+            (srcm.Count > 0).ShouldBeTrue();
         }
 
         [Test]

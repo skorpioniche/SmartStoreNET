@@ -6,13 +6,7 @@
 {
     if (Model.NumberOfAvailableManufacturers > 0)
     {
-        <script>
-			function onProductManufacturerEdit(e) {
-                $(e.form).find('#Manufacturer').select2('val', e.dataItem['ManufacturerId']);
-            }
-        </script>
-	
-		@(Html.Telerik().Grid<ProductModel.ProductManufacturerModel>()
+        @(Html.Telerik().Grid<ProductModel.ProductManufacturerModel>()
             .Name("productmanufacturers-grid")
             .DataKeys(keys =>
             {
@@ -48,6 +42,12 @@
             .ToolBar(commands => commands.Insert())
             .ClientEvents(events => events.OnEdit("onProductManufacturerEdit"))
             .EnableCustomBinding(true))
+
+        <script type="text/javascript">
+            function onProductManufacturerEdit(e) {
+                $(e.form).find('#Manufacturer').select2('val', e.dataItem['ManufacturerId']);
+            }
+        </script>
     }
     else
     {

@@ -3,7 +3,6 @@ using System.Linq;
 using SmartStore.Core.Events;
 using SmartStore.Core.Infrastructure;
 using NUnit.Framework;
-using SmartStore.Core.Data;
 
 namespace SmartStore.Web.MVC.Tests.Events
 {
@@ -16,9 +15,7 @@ namespace SmartStore.Web.MVC.Tests.Events
         [TestFixtureSetUp]
         public void SetUp()
         {
-			DataSettings.SetTestMode(true);
-			_engine = new SmartStoreEngine();
-			_engine.Initialize();
+            _engine = new SmartStoreEngine();
             _eventPublisher = _engine.Resolve<IEventPublisher>();
         }
 

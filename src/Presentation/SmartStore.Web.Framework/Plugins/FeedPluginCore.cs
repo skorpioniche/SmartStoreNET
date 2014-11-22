@@ -42,7 +42,7 @@ namespace SmartStore.Web.Framework.Plugins
 		public string GenerateFeedProgressUrl { get; set; }
 		public string DeleteFilesUrl { get; set; }
 
-		[SmartResourceDisplayName("Admin.PromotionFeeds")]
+		[SmartResourceDisplayName("Plugins.KnownGroup.PromotionFeed")]
 		public List<FeedFileData> GeneratedFiles { get; set; }
 		public List<SelectListItem> AvailableStores { get; set; }
 		public List<SelectListItem> AvailableLanguages { get; set; }

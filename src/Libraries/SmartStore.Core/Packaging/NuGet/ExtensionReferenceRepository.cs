@@ -90,7 +90,7 @@ namespace SmartStore.Core.Packaging
 			: base(project, sourceRepository)
 		{
 			_themeRegistry = themeRegistry;
-			_themeManifests = _themeRegistry.GetThemeManifests(true);
+			_themeManifests = _themeRegistry.GetThemeManifests();
 		}
 
 		public override IQueryable<IPackage> GetPackages()

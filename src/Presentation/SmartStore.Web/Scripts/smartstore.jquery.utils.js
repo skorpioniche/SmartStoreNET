@@ -6,6 +6,14 @@
 
     $.extend({
 
+        fixIE7ZIndexBug: function () {
+            var zIndexNumber = 4000;
+            $('div').each(function () {
+                $(this).css('zIndex', zIndexNumber);
+                zIndexNumber -= 10;
+            });
+        },
+
         topZIndex: function (selector) {
             /*
             /// summary
@@ -91,12 +99,73 @@
 				.html();
         },
 
+        max: function (callback) {
+            var n;
+            jQuery.each(this, function () {
+                var m = callback.apply(this);
+                n = n ? Math.max(n, m) : m;
+            });
+            return n;
+        },
+
+        min: function (callback) {
+            var n;
+            jQuery.each(this, function () {
+                var m = callback.apply(this);
+                n = n ? Math.min(n, m) : m;
+            });
+            return n;
+        },
+
+        sum: function (callback) {
+            var n;
+            jQuery.each(this, function () {
+                m = callback.apply(this);
+                n = n ? n + m : m;
+            });
+            return n;
+        },
+
+        ellipsis: function (enableUpdating) {
+            // currently sets only the 'title' attribute
+            // on element if ellipsized by browser.
+            // Since FF7+ now supports ellipsis, no need
+            // to update the text anymore.
+            return this.each(function () {
+                var el = $(this);
+
+                if (el.css("overflow") == "hidden") {
+                    var text = el.text();
+                    var multiline = false; //el.hasClass('multiline');
+                    var t = $(this.cloneNode(true))
+	                        .hide()
+	                        .css('position', 'absolute')
+	                        .css('overflow', 'visible')
+	                        .width(multiline ? el.width() : 'auto')
+	                        .height(multiline ? 'auto' : el.height());
+
+                    el.after(t);
+
+                    function height() { return t.height() > el.height(); };
+                    function width() { return t.width() > el.width(); };
+
+                    var func = multiline ? height : width;
+
+                    if (func()) {
+                        el.attr('title', text);
+                    }
+
+                    t.remove();
+                }
+            });
+        },
+
         evenIfHidden: function (callback) {
             return this.each(function () {
                 var self = $(this);
                 var styleBackups = [];
 
-                var hiddenElements = self.parents().addBack().filter(':hidden');
+                var hiddenElements = self.parents().andSelf().filter(':hidden');
 
                 if (!hiddenElements.length) {
                     callback(self);
@@ -138,7 +207,7 @@
                 
                 var elems = el.find(opts.childrenOnly ? '>[data-bind-to]' : '[data-bind-to]');
                 if (opts.includeSelf)
-                	elems = elems.addBack();
+                    elems = elems.andSelf();
 
                 elems.each(function () {
                     var elem = $(this);
@@ -167,75 +236,11 @@
             });
         },
 
-		/**
-		 * Copyright 2012, Digital Fusion
-		 * Licensed under the MIT license.
-		 * http://teamdf.com/jquery-plugins/license/
-		 *
-		 * @author Sam Sehnert
-		 * @desc A small plugin that checks whether elements are within
-		 *       the user visible viewport of a web browser.
-		 *       only accounts for vertical position, not horizontal.
-		*/
-        visible: function (partial, hidden, direction) {
-        	if (this.length < 1)
-        		return;
-
-        	var $w = $(window);
-        	var $t = this.length > 1 ? this.eq(0) : this,
-				t = $t.get(0),
-				vpWidth = $w.width(),
-				vpHeight = $w.height(),
-				direction = (direction) ? direction : 'both',
-				clientSize = hidden === true ? t.offsetWidth * t.offsetHeight : true;
-
-        	if (typeof t.getBoundingClientRect === 'function') {
-
-        		// Use this native browser method, if available.
-        		var rec = t.getBoundingClientRect(),
-					tViz = rec.top >= 0 && rec.top < vpHeight,
-					bViz = rec.bottom > 0 && rec.bottom <= vpHeight,
-					lViz = rec.left >= 0 && rec.left < vpWidth,
-					rViz = rec.right > 0 && rec.right <= vpWidth,
-					vVisible = partial ? tViz || bViz : tViz && bViz,
-					hVisible = partial ? lViz || rViz : lViz && rViz;
-
-        		if (direction === 'both')
-        			return clientSize && vVisible && hVisible;
-        		else if (direction === 'vertical')
-        			return clientSize && vVisible;
-        		else if (direction === 'horizontal')
-        			return clientSize && hVisible;
-        	} else {
-
-        		var viewTop = $w.scrollTop(),
-					viewBottom = viewTop + vpHeight,
-					viewLeft = $w.scrollLeft(),
-					viewRight = viewLeft + vpWidth,
-					offset = $t.offset(),
-					_top = offset.top,
-					_bottom = _top + $t.height(),
-					_left = offset.left,
-					_right = _left + $t.width(),
-					compareTop = partial === true ? _bottom : _top,
-					compareBottom = partial === true ? _top : _bottom,
-					compareLeft = partial === true ? _right : _left,
-					compareRight = partial === true ? _left : _right;
-
-        		if (direction === 'both')
-        			return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop)) && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-        		else if (direction === 'vertical')
-        			return !!clientSize && ((compareBottom <= viewBottom) && (compareTop >= viewTop));
-        		else if (direction === 'horizontal')
-        			return !!clientSize && ((compareRight <= viewRight) && (compareLeft >= viewLeft));
-        	}
-        },
-
         moreLess: function () {
-        	var moreText = '<button class="btn btn-mini"><i class="fa fa-plus mini-button-icon"></i>' + Res['Products.Longdesc.More'] + '</button>';
-        	var lessText = '<button class="btn btn-mini"><i class="fa fa-minus mini-button-icon"></i>' + Res['Products.Longdesc.Less'] + '</button>';
+        	var moreText = '<button class="btn btn-mini"><i class="icon icon-plus mini-button-icon"></i>' + Res['Products.Longdesc.More'] + '</button>';
+        	var lessText = '<button class="btn btn-mini"><i class="icon icon-minus mini-button-icon"></i>' + Res['Products.Longdesc.Less'] + '</button>';
 
-			return this.each(function () {
+            return this.each(function () {
             	var el = $(this),
           			opt = $.extend({ adjustheight: 260 }, el.data('options'));
 

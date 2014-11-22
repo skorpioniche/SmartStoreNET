@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Orders
 {
-	public partial class CheckoutAttributeValidator : AbstractValidator<CheckoutAttributeModel>
+    public class CheckoutAttributeValidator : AbstractValidator<CheckoutAttributeModel>
     {
         public CheckoutAttributeValidator(ILocalizationService localizationService)
         {

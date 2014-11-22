@@ -6,7 +6,6 @@ using SmartStore.Core.Data;
 using SmartStore.Core.Domain.Orders;
 using SmartStore.Core.Domain.Shipping;
 using SmartStore.Core.Events;
-using SmartStore.Core.Plugins;
 using SmartStore.Services.Orders;
 
 namespace SmartStore.Services.Shipping
@@ -42,7 +41,7 @@ namespace SmartStore.Services.Shipping
             this._shipmentRepository = shipmentRepository;
             this._siRepository = siRepository;
             this._orderRepository = orderRepository;
-            this._eventPublisher = eventPublisher;
+            _eventPublisher = eventPublisher;
         }
 
         #endregion

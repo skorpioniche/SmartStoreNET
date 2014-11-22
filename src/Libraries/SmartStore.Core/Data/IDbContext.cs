@@ -40,22 +40,12 @@ namespace SmartStore.Core.Data
         // codehint: sm-add (required for UoW implementation)
         string Alias { get; }
 
-        // increasing performance on bulk operations
+        // codehint: sm-add (increasing performance on bulk inserts)
         bool ProxyCreationEnabled { get; set; }
         bool AutoDetectChangesEnabled { get; set; }
         bool ValidateOnSaveEnabled { get; set; }
 		bool HooksEnabled { get; set; }
         bool HasChanges { get; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether entities returned from queries
-		/// or created from stored procedures
-		/// should automatically be attached to the <c>DbContext</c>.
-		/// </summary>
-		/// <remarks>
-		/// Set this to <c>true</c> only during long running processes (like export)
-		/// </remarks>
-		bool ForceNoTracking { get; set; }
 
 		/// <summary>
 		/// Gets a list of modified properties for the specified entity

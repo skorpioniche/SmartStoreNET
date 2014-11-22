@@ -32,7 +32,6 @@ namespace SmartStore.Services.Directory
         private readonly CurrencySettings _currencySettings;
         private readonly IPluginFinder _pluginFinder;
         private readonly IEventPublisher _eventPublisher;
-		private readonly IProviderManager _providerManager;
 
         #endregion
 
@@ -52,8 +51,7 @@ namespace SmartStore.Services.Directory
 			IStoreMappingService storeMappingService,
             CurrencySettings currencySettings,
             IPluginFinder pluginFinder,
-            IEventPublisher eventPublisher,
-			IProviderManager providerManager)
+            IEventPublisher eventPublisher)
         {
             this._cacheManager = cacheManager;
             this._currencyRepository = currencyRepository;
@@ -61,7 +59,6 @@ namespace SmartStore.Services.Directory
             this._currencySettings = currencySettings;
             this._pluginFinder = pluginFinder;
             this._eventPublisher = eventPublisher;
-			this._providerManager = providerManager;
         }
 
         #endregion
@@ -76,11 +73,7 @@ namespace SmartStore.Services.Directory
         public virtual IList<ExchangeRate> GetCurrencyLiveRates(string exchangeRateCurrencyCode)
         {
             var exchangeRateProvider = LoadActiveExchangeRateProvider();
-			if (exchangeRateProvider != null)
-			{
-				return exchangeRateProvider.Value.GetCurrencyLiveRates(exchangeRateCurrencyCode);
-			}
-			return new List<ExchangeRate>();
+            return exchangeRateProvider.GetCurrencyLiveRates(exchangeRateCurrencyCode);
         }
 
         /// <summary>
@@ -302,9 +295,12 @@ namespace SmartStore.Services.Directory
         /// Load active exchange rate provider
         /// </summary>
         /// <returns>Active exchange rate provider</returns>
-        public virtual Provider<IExchangeRateProvider> LoadActiveExchangeRateProvider()
+        public virtual IExchangeRateProvider LoadActiveExchangeRateProvider()
         {
-			return LoadExchangeRateProviderBySystemName(_currencySettings.ActiveExchangeRateProviderSystemName) ?? LoadAllExchangeRateProviders().FirstOrDefault();
+            var exchangeRateProvider = LoadExchangeRateProviderBySystemName(_currencySettings.ActiveExchangeRateProviderSystemName);
+            if (exchangeRateProvider == null)
+                exchangeRateProvider = LoadAllExchangeRateProviders().FirstOrDefault();
+            return exchangeRateProvider;
         }
 
         /// <summary>
@@ -312,18 +308,25 @@ namespace SmartStore.Services.Directory
         /// </summary>
         /// <param name="systemName">System name</param>
         /// <returns>Found exchange rate provider</returns>
-        public virtual Provider<IExchangeRateProvider> LoadExchangeRateProviderBySystemName(string systemName)
+        public virtual IExchangeRateProvider LoadExchangeRateProviderBySystemName(string systemName)
         {
-			return _providerManager.GetProvider<IExchangeRateProvider>(systemName);
+            var descriptor = _pluginFinder.GetPluginDescriptorBySystemName<IExchangeRateProvider>(systemName);
+            if (descriptor != null)
+                return descriptor.Instance<IExchangeRateProvider>();
+
+            return null;
         }
 
         /// <summary>
         /// Load all exchange rate providers
         /// </summary>
         /// <returns>Exchange rate providers</returns>
-        public virtual IEnumerable<Provider<IExchangeRateProvider>> LoadAllExchangeRateProviders()
+        public virtual IList<IExchangeRateProvider> LoadAllExchangeRateProviders()
         {
-			return _providerManager.GetAllProviders<IExchangeRateProvider>();
+            var exchangeRateProviders = _pluginFinder.GetPlugins<IExchangeRateProvider>();
+            return exchangeRateProviders
+                .OrderBy(tp => tp.PluginDescriptor)
+                .ToList();
         }
         #endregion
     }

@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Messages
 {
-	public partial class QueuedEmailValidator : AbstractValidator<QueuedEmailModel>
+    public class QueuedEmailValidator : AbstractValidator<QueuedEmailModel>
     {
         public QueuedEmailValidator(ILocalizationService localizationService)
         {

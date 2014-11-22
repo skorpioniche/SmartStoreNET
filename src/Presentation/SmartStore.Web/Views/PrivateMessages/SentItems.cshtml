@@ -1,5 +1,6 @@
 ﻿@model PrivateMessageListModel 
 @using SmartStore.Web;
+@using SmartStore.Web.Extensions;
 @using SmartStore.Web.Models.PrivateMessages;
 @using SmartStore.Web.Framework.UI;
 <div class="private-messages-box">
@@ -10,7 +11,7 @@
                 $('#pm-sent-table .rowcheckbox').attr('checked', $(this).is(':checked')).change();
             });
 
-            $(document).on('change', '#pm-sent-table .rowcheckbox', function (e) {
+            $('#pm-sent-table .rowcheckbox').live('change', function (e) {
                 var numChkBoxes = $('#pm-sent-table .rowcheckbox').length;
                 var numChkBoxesChecked = $('#pm-sent-table .rowcheckbox:checked').length;
                 $('#selectall-sent').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
@@ -19,7 +20,7 @@
     </script>
     @if (Model.Messages.Count > 0)
     {
-        using (Html.BeginForm("SentUpdate", (string)null))
+        using (Html.BeginRouteForm("PrivateMessagesSent", FormMethod.Post))
         {
             
             
@@ -63,7 +64,7 @@
                             }
                         </td>
                         <td class="a-left">
-                            @Html.ActionLink(item.Subject, "View", new { id = item.Id }, new { @class = "pm-read" })
+                            @Html.RouteLink(item.Subject, "ViewPM", new { privateMessageId = item.Id }, new { @class = "pm-read" })
                         </td>
                         <td class="a-left">
                             @item.CreatedOn
@@ -74,11 +75,11 @@
         </table>
         if (Model.TotalPages > 1)
         {
-            @Html.SmartStore().Pager(Model).Name("paginator").Route("PrivateMessages", ViewData["PagerRouteValues"])
+            @Html.SmartStore().Pager(Model).Name("paginator").Route("PrivateMessagesPaged", ViewData["PagerRouteValues"])
         }
         <div class="buttons">
             <button class="btn btn-danger" name="delete-sent" type="submit" value="delete-sent">
-                <i class="fa fa-trash-o"></i>&nbsp;&nbsp;
+                <i class="icon icon-trash"></i>&nbsp;&nbsp;
                 @T("PrivateMessages.Inbox.DeleteSelected")
             </button>
         </div>

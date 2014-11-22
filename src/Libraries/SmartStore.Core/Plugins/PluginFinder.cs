@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,31 +10,18 @@ namespace SmartStore.Core.Plugins
     /// </summary>
     public class PluginFinder : IPluginFinder
     {
+        private IList<PluginDescriptor> _plugins;
+        private bool _arePluginsLoaded = false;
 
-		private IList<PluginDescriptor> _plugins;
-		private readonly IDictionary<string, PluginDescriptor> _nameMap = new Dictionary<string, PluginDescriptor>(StringComparer.InvariantCultureIgnoreCase);
-		private readonly IDictionary<Assembly, PluginDescriptor> _assemblyMap = new Dictionary<Assembly, PluginDescriptor>();
-
-		private static readonly object s_lock = new object();
-
-		public PluginFinder()
+		protected virtual void EnsurePluginsAreLoaded()
 		{
-			lock (s_lock)
+			if (!_arePluginsLoaded)
 			{
-				LoadPlugins();
-			}
-		}
+				var foundPlugins = PluginManager.ReferencedPlugins.ToList();
+				foundPlugins.Sort(); //sort
+				_plugins = foundPlugins.ToList();
 
-		private void LoadPlugins()
-		{
-			var plugins = PluginManager.ReferencedPlugins.ToList();
-			plugins.Sort(); //sort
-			_plugins = plugins;
-
-			foreach (var plugin in plugins)
-			{
-				_nameMap[plugin.SystemName] = plugin;
-				_assemblyMap[plugin.ReferencedAssembly] = plugin;
+				_arePluginsLoaded = true;
 			}
 		}
 
@@ -47,6 +33,8 @@ namespace SmartStore.Core.Plugins
 		/// <returns>Plugins</returns>
 		public virtual IEnumerable<T> GetPlugins<T>(bool installedOnly = true) where T : class, IPlugin
         {
+            EnsurePluginsAreLoaded();
+
             foreach (var plugin in _plugins)
                 if (typeof(T).IsAssignableFrom(plugin.PluginType))
                     if (!installedOnly || plugin.Installed)
@@ -60,6 +48,8 @@ namespace SmartStore.Core.Plugins
 		/// <returns>Plugin descriptors</returns>
 		public virtual IEnumerable<PluginDescriptor> GetPluginDescriptors(bool installedOnly = true)
         {
+            EnsurePluginsAreLoaded();
+
             foreach (var plugin in _plugins)
                 if (!installedOnly || plugin.Installed)
 					yield return plugin;
@@ -74,6 +64,8 @@ namespace SmartStore.Core.Plugins
 		public virtual IEnumerable<PluginDescriptor> GetPluginDescriptors<T>(bool installedOnly = true)
 			where T : class, IPlugin
         {
+            EnsurePluginsAreLoaded();
+
             foreach (var plugin in _plugins)
                 if (typeof(T).IsAssignableFrom(plugin.PluginType))
                     if (!installedOnly || plugin.Installed)
@@ -82,14 +74,8 @@ namespace SmartStore.Core.Plugins
 
         public virtual PluginDescriptor GetPluginDescriptorByAssembly(Assembly assembly, bool installedOnly = true)
         {
-			PluginDescriptor descriptor;
-			if (assembly != null && _assemblyMap.TryGetValue(assembly, out descriptor)) 
-			{
-				if (!installedOnly || descriptor.Installed)
-					return descriptor;
-			}
-
-			return null;
+            Guard.ArgumentNotNull(() => assembly);
+            return GetPluginDescriptors(installedOnly).FirstOrDefault(p => p.ReferencedAssembly == assembly);
         }
 
 		/// <summary>
@@ -100,14 +86,8 @@ namespace SmartStore.Core.Plugins
 		/// <returns>>Plugin descriptor</returns>
         public virtual PluginDescriptor GetPluginDescriptorBySystemName(string systemName, bool installedOnly = true)
         {
-			PluginDescriptor descriptor;
-			if (systemName.HasValue() && _nameMap.TryGetValue(systemName, out descriptor))
-			{
-				if (!installedOnly || descriptor.Installed)
-					return descriptor;
-			}
-
-			return null;
+            return GetPluginDescriptors(installedOnly)
+                .SingleOrDefault(p => p.SystemName.Equals(systemName, StringComparison.InvariantCultureIgnoreCase));
         }
 
 		/// <summary>
@@ -119,18 +99,17 @@ namespace SmartStore.Core.Plugins
 		/// <returns>>Plugin descriptor</returns>
         public virtual PluginDescriptor GetPluginDescriptorBySystemName<T>(string systemName, bool installedOnly = true) where T : class, IPlugin
         {
-			PluginDescriptor descriptor;
-			if (systemName.HasValue() && _nameMap.TryGetValue(systemName, out descriptor))
-			{
-				if (!installedOnly || descriptor.Installed)
-				{
-					if (typeof(T).IsAssignableFrom(descriptor.PluginType))
-						return descriptor;
-				}
-			}
-
-			return null;
+            return GetPluginDescriptors<T>(installedOnly)
+                .SingleOrDefault(p => p.SystemName.Equals(systemName, StringComparison.InvariantCultureIgnoreCase));
         }
         
+        /// <summary>
+        /// Reload plugins
+        /// </summary>
+        public virtual void ReloadPlugins()
+        {
+            _arePluginsLoaded = false;
+            EnsurePluginsAreLoaded();
+        }
     }
 }

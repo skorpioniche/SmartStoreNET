@@ -514,7 +514,6 @@ namespace SmartStore
 				return new string[0];
 			return value.Split(new string[] { separator }, StringSplitOptions.RemoveEmptyEntries);
 		}
-
 		/// <summary>Splits a string into two strings</summary>
 		/// <remarks>codehint: sm-add</remarks>
 		/// <returns>true: success, false: failure</returns>
@@ -716,10 +715,9 @@ namespace SmartStore
 		/// <summary>Debug.WriteLine</summary>
 		/// <remarks>codehint: sm-add</remarks>
         [DebuggerStepThrough]
-		public static void Dump(this string value, bool appendMarks = false) 
+		public static void Dump(this string value) 
         {
 			Debug.WriteLine(value);
-			Debug.WriteLineIf(appendMarks, "------------------------------------------------");
 		}
 		
 		/// <summary>Smart way to create a HTML attribute with a leading space.</summary>
@@ -912,16 +910,15 @@ namespace SmartStore
             }
         }
 
-		public static string Sha(this string value, Encoding encoding) 
+		public static string Sha(this string value) 
         {
-			if (value.HasValue())
+			if (value.HasValue()) 
             {
-				using (var sha1 = new SHA1CryptoServiceProvider()) 
+				using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider()) 
                 {
-					byte[] data = encoding.GetBytes(value);
+					byte[] data = Encoding.ASCII.GetBytes(value);
 
 					return sha1.ComputeHash(data).ToHexString();
-					//return BitConverter.ToString(sha1.ComputeHash(data)).Replace("-", "");
 				}
 			}
 			return "";
@@ -982,11 +979,9 @@ namespace SmartStore
 			return Array.ConvertAll(s.SplitSafe(","), v => int.Parse(v));
 		}
 
-		//[DebuggerStepThrough]
+		[DebuggerStepThrough]
 		public static bool ToIntArrayContains(this string s, int value, bool defaultValue)
 		{
-			if (s == null)
-				return defaultValue;
 			var arr = s.ToIntArray();
 			if (arr == null || arr.Count() <= 0)
 				return defaultValue;

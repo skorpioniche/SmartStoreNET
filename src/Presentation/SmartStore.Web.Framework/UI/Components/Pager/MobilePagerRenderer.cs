@@ -90,18 +90,18 @@ namespace SmartStore.Web.Framework.UI
             switch (type)
             {
                 case PagerItemType.FirstPage:
-                    writer.AddAttribute("class", "fa fa-step-backward");
+                    writer.AddAttribute("class", "icon-step-backward");
                     break;
                 case PagerItemType.PreviousPage:
-                    writer.AddAttribute("class", "fa fa-chevron-left");
+                    writer.AddAttribute("class", "icon-chevron-left");
                     writer.WriteEncodedText(item.Text);
                     break;
                 case PagerItemType.NextPage:
-					writer.AddAttribute("class", "fa fa-chevron-right");
+                    writer.AddAttribute("class", "icon-chevron-right");
                     writer.WriteEncodedText(item.Text);
                     break;
                 case PagerItemType.LastPage:
-					writer.AddAttribute("class", "fa fa-step-forward");
+                    writer.AddAttribute("class", "icon-step-forward");
                     break;
                 default:
                     writer.WriteEncodedText(item.Text);

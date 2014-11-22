@@ -1,5 +1,6 @@
 ﻿@model ProfilePostsModel
 @using SmartStore.Web;
+@using SmartStore.Web.Extensions;
 @using SmartStore.Web.Models.Profile;
 @using SmartStore.Web.Framework.UI;
 <div class="user-last-posts">
@@ -31,6 +32,6 @@
     }
     @if (Model.TotalPages > 1)
     {
-        @Html.SmartStore().Pager(Model).Name("paginator").Route("CustomerProfile", ViewData["PagerRouteValues"])
+        @Html.SmartStore().Pager(Model).Name("paginator").Route("CustomerProfilePaged", ViewData["PagerRouteValues"])
     }
 </div>

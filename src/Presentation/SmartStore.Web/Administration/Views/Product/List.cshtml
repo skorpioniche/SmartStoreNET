@@ -15,19 +15,19 @@
 {
     <div class="section-header">
         <div class="title">
-            <i class="fa fa-cube"></i>
+            <i class="icon icon-sitemap"></i>
             @T("Admin.Catalog.Products.Manage")
         </div>
         <div class="options btn-toolbar">
             <a href="@Url.Action("Create")" class="btn btn-primary">
-                <i class="fa fa-plus"></i>
+                <i class="icon-plus"></i>
                 @T("Admin.Common.AddNew")
             </a>
 
             <div class="btn-group" style="vertical-align: middle">
 				<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
 					Export
-					<span class="fa fa-caret-down"></span>
+					<span class="icon-caret-down"></span>
 				</a>
 				<ul class="dropdown-menu">
 					<li><a href="@Url.Action("ExportXmlAll")">@T("Admin.Common.ExportToXml.All")</a></li>
@@ -49,11 +49,11 @@
             </div>
 
             <a id="importexcel" href="#importexcel-window" class="btn" role="button">
-				<i class="fa fa-arrow-circle-o-up"></i>&nbsp;@T("Admin.Common.ImportFromExcel")
+				<i class="icon-upload"></i>&nbsp;@T("Admin.Common.ImportFromExcel")
 			</a>
 
             <button type="submit" id="delete-selected" class="btn btn-danger">
-				<i class="fa fa-trash-o"></i>
+				<i class="icon-trash"></i>
 				@T("Admin.Common.Delete.Selected")
 			</button>
         </div>
@@ -107,7 +107,7 @@
             <td class="adminData">
                 @Html.EditorFor(model => Model.GoDirectlyToSku)
                 <button type="submit" id="go-to-product-by-sku" name="go-to-product-by-sku" value="go-to-product-by-sku" class="btn">
-					<i class="fa fa-play-circle-o"></i>&nbsp;@T("Admin.Common.Go")
+					<i class="icon-play-circle"></i>&nbsp;@T("Admin.Common.Go")
 				</button>
             </td>
         </tr>
@@ -116,7 +116,7 @@
 				&nbsp;
 			</td>
             <td class="adminData">
-                <button type="submit" id="search-products" value="search-products" class="btn"><i class="fa fa-search"></i>&nbsp;@T("Admin.Common.Search")</button>
+                <button type="submit" id="search-products" value="search-products" class="btn"><i class="icon-search"></i>&nbsp;@T("Admin.Common.Search")</button>
             </td>
         </tr>
     </table>
@@ -234,7 +234,7 @@
             });
 
             //wire up checkboxes. 
-        	$(document).on('change', '#products-grid input[type=checkbox][id!=mastercheckbox]', function (e) {
+            $('#products-grid input[type=checkbox][id!=mastercheckbox]').live('change', function (e) {
                 var $check = $(this);
                 if ($check.is(":checked") == true) {
                     var checked = jQuery.inArray($check.val(), selectedIds);

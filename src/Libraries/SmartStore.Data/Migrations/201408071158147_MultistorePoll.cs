@@ -10,11 +10,11 @@ namespace SmartStore.Data.Migrations
     {
         public override void Up()
         {
-			AddColumn("dbo.Poll", "LimitedToStores", c => c.Boolean(nullable: false));
-			AddColumn("dbo.NewsLetterSubscription", "StoreId", c => c.Int(nullable: false));
-			AddColumn("dbo.Campaign", "LimitedToStores", c => c.Boolean(nullable: false));
+			//AddColumn("dbo.Poll", "LimitedToStores", c => c.Boolean(nullable: false));
+			//AddColumn("dbo.NewsLetterSubscription", "StoreId", c => c.Int(nullable: false));
+			//AddColumn("dbo.Campaign", "LimitedToStores", c => c.Boolean(nullable: false));
 
-			CreateIndex("NewsLetterSubscription", "Email", false, "IX_NewsLetterSubscription_Email", false);
+			//CreateIndex("NewsLetterSubscription", "Email", false, "IX_NewsLetterSubscription_Email", false);
         }
         
         public override void Down()
@@ -55,7 +55,7 @@ namespace SmartStore.Data.Migrations
 			builder.AddOrUpdate("Admin.Configuration.Settings.Catalog.EnableHtmlTextCollapser",
 				"Truncate long texts",
 				"Langtexte kürzen",
-				"Option to truncate long texts and to only show on click in full length.",
+				"Option to truncate long texts and to only shown on click in full length.",
 				"Option, bei der Langtexte gekürzt und erst auf Klick in voller Länge angezeigt werden.");
 
 			builder.AddOrUpdate("Admin.Configuration.Settings.Catalog.HtmlTextCollapsedHeight",

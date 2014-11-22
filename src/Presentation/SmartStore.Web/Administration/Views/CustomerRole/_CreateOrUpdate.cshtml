@@ -1,10 +1,8 @@
 ﻿@model CustomerRoleModel
 
 @using Telerik.Web.Mvc.UI;
-
 @Html.ValidationSummary(true)
 @Html.HiddenFor(model => model.Id)
-
 <table class="adminContent">
     <tr>
         <td class="adminTitle">
@@ -33,6 +31,8 @@
             @Html.ValidationMessageFor(model => model.FreeShipping)
         </td>
     </tr>
+
+    <!-- codehint: sm-add begin -->
     <tr>
         <td class="adminTitle">
             @Html.SmartLabelFor(model => model.TaxDisplayType)
@@ -42,6 +42,8 @@
             @Html.ValidationMessageFor(model => model.TaxDisplayType)
         </td>
     </tr>
+    <!-- codehint: sm-add end -->
+
     <tr>
         <td class="adminTitle">
             @Html.SmartLabelFor(model => model.TaxExempt)
@@ -65,7 +67,7 @@
             @Html.SmartLabelFor(model => model.IsSystemRole)
         </td>
         <td class="adminData">
-			@T(Model.IsSystemRole ? "Admin.Common.Yes" : "Admin.Common.No")
+            @Model.IsSystemRole.ToString()
             @Html.HiddenFor(model => model.IsSystemRole)
             @Html.ValidationMessageFor(model => model.IsSystemRole)
         </td>

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using SmartStore.Core.Domain.Catalog;
 
 namespace SmartStore.Services.Catalog
@@ -22,7 +21,7 @@ namespace SmartStore.Services.Catalog
         /// Gets specification attributes
         /// </summary>
         /// <returns>Specification attributes</returns>
-        IQueryable<SpecificationAttribute> GetSpecificationAttributes();
+        IList<SpecificationAttribute> GetSpecificationAttributes();
 
         /// <summary>
         /// Deletes a specification attribute

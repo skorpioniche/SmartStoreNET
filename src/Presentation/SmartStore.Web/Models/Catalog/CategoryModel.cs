@@ -30,8 +30,6 @@ namespace SmartStore.Web.Models.Catalog
 
         public bool DisplayCategoryBreadcrumb { get; set; }
         public IList<MenuItem> CategoryBreadcrumb { get; set; }
-
-        public bool DisplayFilter { get; set; }
         
         public IList<SubCategoryModel> SubCategories { get; set; }
 

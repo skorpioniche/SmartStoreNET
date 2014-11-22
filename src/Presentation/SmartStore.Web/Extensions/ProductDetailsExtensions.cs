@@ -7,7 +7,7 @@ using SmartStore.Core.Domain.Catalog;
 using SmartStore.Core.Domain.Media;
 using SmartStore.Services.Media;
 
-namespace SmartStore.Web
+namespace SmartStore.Web.Extensions
 {
 	public static class ProductDetailsExtensions
 	{
@@ -15,11 +15,12 @@ namespace SmartStore.Web
 		{
 			var urlHelper = new UrlHelper(HttpContext.Current.Request.RequestContext);
 
-			string url = urlHelper.Action("UpdateProductDetails", "Product", new
+			string url = urlHelper.Action("UpdateProductDetails", "Catalog", new
 			{
 				productId = model.Id,
 				bundleItemId = model.BundleItem.Id,
-				itemType = itemType
+				itemType = itemType,
+				area = "admin"
 			});
 
 			return url;

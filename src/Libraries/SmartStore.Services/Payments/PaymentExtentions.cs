@@ -1,11 +1,8 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using SmartStore.Core.Domain.Orders;
 using SmartStore.Core.Domain.Payments;
-using SmartStore.Core.Plugins;
 using SmartStore.Services.Orders;
-using System.Web.Routing;
 
 namespace SmartStore.Services.Payments
 {
@@ -17,7 +14,8 @@ namespace SmartStore.Services.Payments
         /// <param name="paymentMethod">Payment method</param>
         /// <param name="paymentSettings">Payment settings</param>
         /// <returns>Result</returns>
-        public static bool IsPaymentMethodActive(this Provider<IPaymentMethod> paymentMethod, PaymentSettings paymentSettings)
+        public static bool IsPaymentMethodActive(this IPaymentMethod paymentMethod,
+            PaymentSettings paymentSettings)
         {
             if (paymentMethod == null)
                 throw new ArgumentNullException("paymentMethod");
@@ -27,8 +25,10 @@ namespace SmartStore.Services.Payments
 
             if (paymentSettings.ActivePaymentMethodSystemNames == null)
                 return false;
-
-			return paymentSettings.ActivePaymentMethodSystemNames.Contains(paymentMethod.Metadata.SystemName, StringComparer.OrdinalIgnoreCase);
+            foreach (string activeMethodSystemName in paymentSettings.ActivePaymentMethodSystemNames)
+                if (paymentMethod.PluginDescriptor.SystemName.Equals(activeMethodSystemName, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+            return false;
         }
 
         /// <summary>
@@ -41,14 +41,11 @@ namespace SmartStore.Services.Payments
         /// <param name="usePercentage">Is fee amount specified as percentage or fixed value?</param>
         /// <returns>Result</returns>
         public static decimal CalculateAdditionalFee(this IPaymentMethod paymentMethod,
-			IOrderTotalCalculationService orderTotalCalculationService, 
-			IList<OrganizedShoppingCartItem> cart,
-            decimal fee, 
-			bool usePercentage)
+			IOrderTotalCalculationService orderTotalCalculationService, IList<OrganizedShoppingCartItem> cart,
+            decimal fee, bool usePercentage)
         {
             if (paymentMethod == null)
                 throw new ArgumentNullException("paymentMethod");
-
             if (fee <= 0)
                 return fee;
 
@@ -66,44 +63,5 @@ namespace SmartStore.Services.Payments
             }
             return result;
         }
-
-		public static RouteInfo GetConfigurationRoute(this IPaymentMethod method)
-		{
-			Guard.ArgumentNotNull(() => method);
-			
-			string action;
-			string controller;
-			RouteValueDictionary routeValues;
-
-			var configurable = method as IConfigurable;
-
-			if (configurable != null)
-			{
-				configurable.GetConfigurationRoute(out action, out controller, out routeValues);
-				if (action.HasValue())
-				{
-					return new RouteInfo(action, controller, routeValues);
-				}
-			}
-			
-			return null;
-		}
-
-		public static RouteInfo GetPaymentInfoRoute(this IPaymentMethod method)
-		{
-			Guard.ArgumentNotNull(() => method);
-
-			string action;
-			string controller;
-			RouteValueDictionary routeValues;
-
-			method.GetPaymentInfoRoute(out action, out controller, out routeValues);
-			if (action.HasValue())
-			{
-				return new RouteInfo(action, controller, routeValues);
-			}
-
-			return null;
-		}
     }
 }

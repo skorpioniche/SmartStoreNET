@@ -48,50 +48,20 @@ namespace SmartStore.Web.Framework.Themes
 
             string expression = html.NameForThemeVar(info);
 
-			var strValue = string.Empty;
-
-			var arrValue = value as string[];
-			if (arrValue != null)
-			{
-				strValue = arrValue.Length > 0 ? arrValue[0] : value.ToString();
-			}
-			else
-			{
-				strValue = value.ToString();
-			}
-
-			var currentTheme = ThemeHelper.ResolveCurrentTheme();
-			var isDefault = strValue.IsCaseInsensitiveEqual(info.DefaultValue);
-
-			MvcHtmlString control;
-
             if (info.Type == ThemeVariableType.Color)
             {
-				control = html.ColorBox(expression, strValue, info.DefaultValue);
+                return html.ColorBox(expression, value.ToString());
             }
             else if (info.Type == ThemeVariableType.Boolean)
             {
-				control = html.CheckBox(expression, strValue.ToBool());
+                return html.CheckBox(expression, value.ToString().ToBool());
             }
-			else if (info.Type == ThemeVariableType.Select)
-			{
-				control = ThemeVarSelectEditor(html, info, expression, strValue);
-			}
-			else
-			{
-				control = html.TextBox(expression, isDefault ? "" : strValue, new { placeholder = info.DefaultValue });
-			}
+            else if (info.Type == ThemeVariableType.Select)
+            {
+                return ThemeVarSelectEditor(html, info, expression, value.ToString());
+            }
 
-			if (currentTheme != info.Manifest)
-			{
-				// the variable is inherited from a base theme: display an info badge
-				var chainInfo = "<span class='themevar-chain-info'><i class='fa fa-chain fa-flip-horizontal'></i>&nbsp;{0}</span>".FormatCurrent(info.Manifest.ThemeName);
-				return MvcHtmlString.Create(control.ToString() + chainInfo);
-			}
-			else
-			{
-				return control;
-			}	
+            return html.TextBox(expression, value);
         }
 
         private static MvcHtmlString ThemeVarSelectEditor(HtmlHelper html, ThemeVariableInfo info, string expression, string value)
@@ -102,9 +72,7 @@ namespace SmartStore.Web.Framework.Themes
             {
                 throw new SmartException("A select list with id '{0}' was not specified. Please specify a 'Select' element with at least one 'Option' child.", info.SelectRef);
             }
-
-			//var isDefault = value.IsCaseInsensitiveEqual(info.DefaultValue);
-
+            
             var selectList = from x in manifest.Selects[info.SelectRef]
                              select new SelectListItem 
                              { 
@@ -112,8 +80,8 @@ namespace SmartStore.Web.Framework.Themes
                                  Text = x, // TODO: (MC) Localize
                                  Selected = x.IsCaseInsensitiveEqual(value) 
                              };
-
-			return html.DropDownList(expression, selectList, new { placeholder = info.DefaultValue });
+            
+            return html.DropDownList(expression, selectList);
         }
 
         public static string NameForThemeVar(this HtmlHelper html, ThemeVariableInfo info)

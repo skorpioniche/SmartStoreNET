@@ -32,7 +32,6 @@ using Telerik.Web.Mvc;
 using SmartStore.Services.Common;
 using SmartStore.Core.Domain.Common;
 using System.Reflection;
-using Autofac;
 
 namespace SmartStore.Admin.Controllers
 {
@@ -41,28 +40,27 @@ namespace SmartStore.Admin.Controllers
     {
         #region Fields
 
-        private readonly Lazy<IPaymentService> _paymentService;
-        private readonly Lazy<IShippingService> _shippingService;
-        private readonly Lazy<ICurrencyService> _currencyService;
-        private readonly Lazy<IMeasureService> _measureService;
+        private readonly IPaymentService _paymentService;
+        private readonly IShippingService _shippingService;
+        private readonly ICurrencyService _currencyService;
+        private readonly IMeasureService _measureService;
         private readonly ICustomerService _customerService;
         private readonly IUrlRecordService _urlRecordService;
         private readonly IWebHelper _webHelper;
-        private readonly Lazy<CurrencySettings> _currencySettings;
-        private readonly Lazy<MeasureSettings> _measureSettings;
-        private readonly Lazy<IDateTimeHelper> _dateTimeHelper;
+        private readonly CurrencySettings _currencySettings;
+        private readonly MeasureSettings _measureSettings;
+        private readonly IDateTimeHelper _dateTimeHelper;
         private readonly ILanguageService _languageService;
         private readonly IWorkContext _workContext;
 		private readonly IStoreContext _storeContext;
         private readonly IPermissionService _permissionService;
         private readonly ILocalizationService _localizationService;
-        private readonly Lazy<IImageCache> _imageCache;
-        private readonly Lazy<SecuritySettings> _securitySettings;
-		private readonly Lazy<IMenuPublisher> _menuPublisher;
-        private readonly Lazy<IPluginFinder> _pluginFinder;
+        private readonly IImageCache _imageCache;
+        private readonly SecuritySettings _securitySettings;
+        private readonly ITypeFinder _typeFinder;
+        private readonly IPluginFinder _pluginFinder;
         private readonly IGenericAttributeService _genericAttributeService;
 		private readonly IDbContext _dbContext;
-		private readonly Func<string, ICacheManager> _cache;
 
 		private readonly static object _lock = new object();
 
@@ -70,29 +68,27 @@ namespace SmartStore.Admin.Controllers
 
         #region Constructors
 
-        public CommonController(
-			Lazy<IPaymentService> paymentService,
-			Lazy<IShippingService> shippingService,
-            Lazy<ICurrencyService> currencyService,
-			Lazy<IMeasureService> measureService,
+        public CommonController(IPaymentService paymentService,
+			IShippingService shippingService,
+            ICurrencyService currencyService,
+			IMeasureService measureService,
             ICustomerService customerService,
 			IUrlRecordService urlRecordService, 
 			IWebHelper webHelper,
-			Lazy<CurrencySettings> currencySettings,
-            Lazy<MeasureSettings> measureSettings,
-			Lazy<IDateTimeHelper> dateTimeHelper,
+			CurrencySettings currencySettings,
+            MeasureSettings measureSettings,
+			IDateTimeHelper dateTimeHelper,
             ILanguageService languageService,
 			IWorkContext workContext,
 			IStoreContext storeContext,
             IPermissionService permissionService,
 			ILocalizationService localizationService,
-            Lazy<IImageCache> imageCache,
-			Lazy<SecuritySettings> securitySettings,
-			Lazy<IMenuPublisher> menuPublisher,
-            Lazy<IPluginFinder> pluginFinder,
+            IImageCache imageCache,
+			SecuritySettings securitySettings,
+			ITypeFinder typeFinder,
+            IPluginFinder pluginFinder,
             IGenericAttributeService genericAttributeService,
-			IDbContext dbContext,
-			Func<string, ICacheManager> cache)
+			IDbContext dbContext)
         {
             this._paymentService = paymentService;
             this._shippingService = shippingService;
@@ -111,11 +107,10 @@ namespace SmartStore.Admin.Controllers
             this._localizationService = localizationService;
             this._imageCache = imageCache;
             this._securitySettings = securitySettings;
-            this._menuPublisher = menuPublisher;
+            this._typeFinder = typeFinder;
 			this._pluginFinder = pluginFinder;
             this._genericAttributeService = genericAttributeService;
 			this._dbContext = dbContext;
-			this._cache = cache;
         }
 
         #endregion
@@ -127,7 +122,7 @@ namespace SmartStore.Admin.Controllers
         [ChildActionOnly]
         public ActionResult Menu()
         {
-			var cacheManager = _cache("static");
+			var cacheManager = EngineContext.Current.Resolve<ICacheManager>("static");
 
             var customerRolesIds = _workContext.CurrentCustomer.CustomerRoles.Where(x => x.Active).Select(x => x.Id).ToList();
             string cacheKey = string.Format("smartstore.pres.adminmenu.navigation-{0}-{1}", _workContext.WorkingLanguage.Id, string.Join(",", customerRolesIds));
@@ -144,64 +139,65 @@ namespace SmartStore.Admin.Controllers
 
         private TreeNode<MenuItem> PrepareAdminMenu()
         {
-            XmlSiteMap siteMap = new XmlSiteMap();
-			siteMap.LoadFrom("~/Administration/sitemap.config");
+            SiteMapBase siteMap;
+            if (!SiteMapManager.SiteMaps.TryGetValue("admin", out siteMap))
+            {
+                SiteMapManager.SiteMaps.Register<XmlSiteMap>("admin", x => x.LoadFrom("~/Administration/sitemap.config"));
+                siteMap = SiteMapManager.SiteMaps["admin"];
+            }
             
             var rootNode = ConvertSitemapNodeToMenuItemNode(siteMap.RootNode);
 
-			_menuPublisher.Value.RegisterMenus(rootNode, "admin");
+            TreeNode<MenuItem> pluginNode = null;
 
-			//TreeNode<MenuItem> pluginNode = null;
+            // "collect" menus from plugins
+            if (!_securitySettings.HideAdminMenuItemsBasedOnPermissions || _permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
+            {
+                var providers = new List<IMenuProvider>();
+				var providerTypes = _typeFinder.FindClassesOfType<IMenuProvider>(ignoreInactivePlugins: true);
 
-			//// "collect" menus from plugins
-			//var providers = new List<IMenuProvider>();
-			//var providerTypes = _typeFinder.FindClassesOfType<IMenuProvider>(ignoreInactivePlugins: true);
+                foreach (var type in providerTypes)
+                {
+                    try
+                    {
+                        var provider = Activator.CreateInstance(type) as IMenuProvider;
+                        providers.Add(provider);
+                    }
+                    catch { }
+                }
 
-			//foreach (var type in providerTypes)
-			//{
-			//	try
-			//	{
-			//		var provider = Activator.CreateInstance(type) as IMenuProvider;
-			//		if (provider.MenuName.IsCaseInsensitiveEqual("admin"))
-			//		{
-			//			providers.Add(provider);
-			//		}
-			//	}
-			//	catch { }
-			//}
+                if (providers.Any())
+                {
+                    var pluginItem = new MenuItem().ToBuilder()
+                        .Text("Plugins")
+                        .ResKey("Admin.Plugins")
+                        .PermissionNames("ManagePlugins")
+                        .ToItem();
+                    pluginNode = rootNode.Append(pluginItem);
 
-			//if (providers.Any())
-			//{
-			//	pluginNode = rootNode.Children.FirstOrDefault(x => x.Value.Id == "plugins");
-			//	providers.Each(x => x.BuildMenu(pluginNode));
-			//}
+                    providers.Each(x => x.BuildMenu(pluginNode));
+                }
+            }
 
-			// hide based on permissions
+            // hide based on permissions
             rootNode.TraverseTree(x => {
                 if (!x.IsRoot)
                 {
-					if (!MenuItemAccessPermitted(x.Value))
+                    if (!MenuItemAccessPermitted(x.Value))
                     {
                         x.Value.Visible = false;
                     }
                 }
             });
 
-            // hide dropdown nodes when no child is visible
-			rootNode.TraverseTree(x =>
-			{
-				if (!x.IsRoot)
-				{
-					var item = x.Value;
-					if (!item.IsGroupHeader && !item.HasRoute())
-					{
-						if (!x.Children.Any(child => child.Value.Visible))
-						{
-							item.Visible = false;
-						}
-					}
-				}
-			});
+            // hide plugins node when no child is visible
+            if (pluginNode != null)
+            {
+                if (!pluginNode.Children.Any(x => x.Value.Visible))
+                {
+                    pluginNode.Value.Visible = false;
+                }
+            }
 
             return rootNode;
         }
@@ -239,9 +235,6 @@ namespace SmartStore.Admin.Controllers
             if (node.Attributes.ContainsKey("resKey"))
                 item.ResKey = node.Attributes["resKey"] as string;
 
-			if (node.Attributes.ContainsKey("iconClass"))
-				item.Icon = node.Attributes["iconClass"] as string;
-
             if (node.Attributes.ContainsKey("imageUrl"))
                 item.ImageUrl = node.Attributes["imageUrl"] as string;
 
@@ -262,7 +255,7 @@ namespace SmartStore.Admin.Controllers
         {
             var result = true;
 
-			if (_securitySettings.Value.HideAdminMenuItemsBasedOnPermissions && item.PermissionNames.HasValue())
+            if (_securitySettings.HideAdminMenuItemsBasedOnPermissions && item.PermissionNames.HasValue())
             {
                 var permitted = item.PermissionNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(x => _permissionService.Authorize(x.Trim()));
                 if (!permitted)
@@ -369,7 +362,7 @@ namespace SmartStore.Admin.Controllers
 
 
             //primary exchange rate currency
-			var perCurrency = _currencyService.Value.GetCurrencyById(_currencySettings.Value.PrimaryExchangeRateCurrencyId);
+            var perCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryExchangeRateCurrencyId);
             if (perCurrency != null)
             {
                 model.Add(new SystemWarningModel()
@@ -396,7 +389,7 @@ namespace SmartStore.Admin.Controllers
             }
 
             //primary store currency
-			var pscCurrency = _currencyService.Value.GetCurrencyById(_currencySettings.Value.PrimaryStoreCurrencyId);
+            var pscCurrency = _currencyService.GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             if (pscCurrency != null)
             {
                 model.Add(new SystemWarningModel()
@@ -416,7 +409,7 @@ namespace SmartStore.Admin.Controllers
 
 
             //base measure weight
-			var bWeight = _measureService.Value.GetMeasureWeightById(_measureSettings.Value.BaseWeightId);
+            var bWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId);
             if (bWeight != null)
             {
                 model.Add(new SystemWarningModel()
@@ -445,7 +438,7 @@ namespace SmartStore.Admin.Controllers
 
 
             //base dimension weight
-			var bDimension = _measureService.Value.GetMeasureDimensionById(_measureSettings.Value.BaseDimensionId);
+            var bDimension = _measureService.GetMeasureDimensionById(_measureSettings.BaseDimensionId);
             if (bDimension != null)
             {
                 model.Add(new SystemWarningModel()
@@ -472,9 +465,9 @@ namespace SmartStore.Admin.Controllers
                 });
             }
 
-            // shipping rate coputation methods
-			if (_shippingService.Value.LoadActiveShippingRateComputationMethods()
-                .Where(x => x.Value.ShippingRateComputationMethodType == ShippingRateComputationMethodType.Offline)
+            //shipping rate coputation methods
+            if (_shippingService.LoadActiveShippingRateComputationMethods()
+                .Where(x => x.ShippingRateComputationMethodType == ShippingRateComputationMethodType.Offline)
                 .Count() > 1)
                 model.Add(new SystemWarningModel()
                 {
@@ -483,7 +476,7 @@ namespace SmartStore.Admin.Controllers
                 });
 
             //payment methods
-			if (_paymentService.Value.LoadActivePaymentMethods()
+            if (_paymentService.LoadActivePaymentMethods()
                 .Count() > 0)
                 model.Add(new SystemWarningModel()
                 {
@@ -561,7 +554,7 @@ namespace SmartStore.Admin.Controllers
             // image cache stats
             long imageCacheFileCount = 0;
             long imageCacheTotalSize = 0;
-			_imageCache.Value.CacheStatistics(out imageCacheFileCount, out imageCacheTotalSize);
+            _imageCache.CacheStatistics(out imageCacheFileCount, out imageCacheTotalSize);
             model.DeleteImageCache.FileCount = imageCacheFileCount;
             model.DeleteImageCache.TotalSize = Prettifier.BytesToString(imageCacheTotalSize);
 
@@ -575,7 +568,7 @@ namespace SmartStore.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMaintenance))
                 return AccessDeniedView();
 
-			_imageCache.Value.DeleteCachedImages();
+            _imageCache.DeleteCachedImages();
 
             return RedirectToAction("Maintenance");
         }
@@ -588,10 +581,10 @@ namespace SmartStore.Admin.Controllers
                 return AccessDeniedView();
 
             DateTime? startDateValue = (model.DeleteGuests.StartDate == null) ? null
-							: (DateTime?)_dateTimeHelper.Value.ConvertToUtcTime(model.DeleteGuests.StartDate.Value, _dateTimeHelper.Value.CurrentTimeZone);
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteGuests.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             DateTime? endDateValue = (model.DeleteGuests.EndDate == null) ? null
-							: (DateTime?)_dateTimeHelper.Value.ConvertToUtcTime(model.DeleteGuests.EndDate.Value, _dateTimeHelper.Value.CurrentTimeZone).AddDays(1);
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteGuests.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
             model.DeleteGuests.NumberOfDeletedCustomers = _customerService.DeleteGuestCustomers(startDateValue, endDateValue, model.DeleteGuests.OnlyWithoutShoppingCart);
 
@@ -606,10 +599,10 @@ namespace SmartStore.Admin.Controllers
                 return AccessDeniedView();
 
             DateTime? startDateValue = (model.DeleteExportedFiles.StartDate == null) ? null
-							: (DateTime?)_dateTimeHelper.Value.ConvertToUtcTime(model.DeleteExportedFiles.StartDate.Value, _dateTimeHelper.Value.CurrentTimeZone);
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteExportedFiles.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
 
             DateTime? endDateValue = (model.DeleteExportedFiles.EndDate == null) ? null
-							: (DateTime?)_dateTimeHelper.Value.ConvertToUtcTime(model.DeleteExportedFiles.EndDate.Value, _dateTimeHelper.Value.CurrentTimeZone).AddDays(1);
+                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.DeleteExportedFiles.EndDate.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
 
             model.DeleteExportedFiles.NumberOfDeletedFiles = 0;
@@ -621,9 +614,6 @@ namespace SmartStore.Admin.Controllers
                     var fileName = Path.GetFileName(fullPath);
                     if (fileName.Equals("index.htm", StringComparison.InvariantCultureIgnoreCase))
                         continue;
-
-					if (fileName.Equals("placeholder", StringComparison.InvariantCultureIgnoreCase))
-						continue;
 
                     var info = new FileInfo(fullPath);
                     if ((!startDateValue.HasValue || startDateValue.Value < info.CreationTimeUtc)&&
@@ -691,11 +681,8 @@ namespace SmartStore.Admin.Controllers
 
 		public ActionResult ClearCache(string previousUrl)
         {
-			var cacheManager = _cache("static");
+			var cacheManager = EngineContext.Current.Resolve<ICacheManager>("static");
             cacheManager.Clear();
-
-			cacheManager = _cache("aspnet");
-			cacheManager.Clear();
 
 			this.NotifySuccess(_localizationService.GetResource("Admin.Common.TaskSuccessfullyProcessed"));
 
@@ -793,6 +780,7 @@ namespace SmartStore.Admin.Controllers
         }
 
         #endregion
+
 
         #region Generic Attributes
 

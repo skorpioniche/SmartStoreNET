@@ -18,6 +18,7 @@
 @using SmartStore.Core.Infrastructure;
 @using SmartStore.Web;
 @using SmartStore.Web.Models.Catalog;
+@using SmartStore.Web.Extensions;
 @using SmartStore.Web.Framework.UI;
 
 @functions{
@@ -34,7 +35,7 @@
     @if (Model.DisplayCategoryBreadcrumb) {
         <ul id="breadcrumb" class="breadcrumb">
             <li>
-                <a href="@Url.RouteUrl("HomePage")" title="@T("Categories.Breadcrumb.Top")"><i class="fa fa-home" style="text-decoration: none"></i></a> 
+                <a href="@Url.RouteUrl("HomePage")" title="@T("Categories.Breadcrumb.Top")"><i class="icon-home" style="text-decoration: none"></i></a> 
                 <span class="divider">/</span>
             </li>
 
@@ -153,10 +154,9 @@
     @Html.Widget("categorydetails_before_filters")
 
     @*filtering*@
-	@if (Model.Products.Count > 0 && Model.DisplayFilter)
-    {
+	@if (Model.Products.Count > 0) {
 		<div id="product-filter" class="block block-bordered product-filter-block">
-			<form class="filter-product-form" method="GET" action="@Url.Action("Products", "Filter")" data-multiselecturl="@Url.Action("ProductsMultiSelect", "Filter")">
+			<form class="filter-product-form" method="GET" action="@Url.RouteUrl("ProductFilters")" data-multiselecturl="@Url.RouteUrl("ProductsMultiSelect")">
 				<input type="hidden" name="categoryID" value="@Model.Id" />
 				<input type="hidden" name="path" value="@Request.Url.AbsolutePath" />
 				<input type="hidden" name="pagesize" value="@Model.PagingFilteringContext.PageSize" />

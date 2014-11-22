@@ -84,7 +84,6 @@ namespace SmartStore.Services.Tests.Orders
         CurrencySettings _currencySettings;
 		IAffiliateService _affiliateService;
 		ISettingService _settingService;
-		IGeoCountryLookup _geoCountryLookup;
 
 		Store _store;
 
@@ -131,8 +130,7 @@ namespace SmartStore.Services.Tests.Orders
                 _localizationService,
                 _shippingSettings, pluginFinder, 
                 _eventPublisher, _shoppingCartSettings,
-				_settingService,
-				this.ProviderManager);
+				_settingService);
             _shipmentService = MockRepository.GenerateMock<IShipmentService>();
             
 
@@ -146,12 +144,9 @@ namespace SmartStore.Services.Tests.Orders
             _taxSettings.ShippingIsTaxable = true;
             _taxSettings.PaymentMethodAdditionalFeeIsTaxable = true;
             _taxSettings.DefaultTaxAddressId = 10;
-
             _addressService = MockRepository.GenerateMock<IAddressService>();
             _addressService.Expect(x => x.GetAddressById(_taxSettings.DefaultTaxAddressId)).Return(new Address() { Id = _taxSettings.DefaultTaxAddressId });
-			_geoCountryLookup = MockRepository.GenerateMock<IGeoCountryLookup>();
-
-			_taxService = new TaxService(_addressService, _workContext, _taxSettings, _shoppingCartSettings, pluginFinder, _settingService, _geoCountryLookup, this.ProviderManager);
+			_taxService = new TaxService(_addressService, _workContext, _taxSettings, _shoppingCartSettings, pluginFinder, _settingService);
 
             _rewardPointsSettings = new RewardPointsSettings();
 

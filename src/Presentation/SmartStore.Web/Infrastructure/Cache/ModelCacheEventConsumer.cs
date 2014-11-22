@@ -253,6 +253,17 @@ namespace SmartStore.Web.Infrastructure.Cache
         public const string TOPIC_WIDGET_PATTERN_KEY = "sm.pres.topic.widget";
         public const string TOPIC_WIDGET_ALL_MODEL_KEY = "sm.pres.topic.widget-all-{0}-{1}";
 
+		/// <summary>
+		/// Key for TopicWidget by zone caching
+		/// </summary>
+		/// <remarks>
+		/// {0} : widget zone
+		/// {1} : store id
+		/// {2} : language id
+		/// </remarks>
+		public const string TOPIC_WIDGET_BYZONE_PATTERN_KEY = "sm.pres.topic.widget-byzone";
+		public const string TOPIC_WIDGET_BYZONE_MODEL_KEY = "sm.pres.topic.widget-byzone-{0}-{1}-{2}";
+
         /// <summary>
         /// Key for CategoryTemplate caching
         /// </summary>
@@ -442,27 +453,6 @@ namespace SmartStore.Web.Infrastructure.Cache
         public const string SHOPHEADER_MODEL_KEY = "sm.pres.shopheader-{0}";
 		public const string SHOPHEADER_MODEL_PATTERN_KEY = "sm.pres.shopheader";
 
-		/// <summary>
-		/// Key for sitemap
-		/// </summary>
-		/// <remarks>
-		/// {0} : language id
-		/// {1} : current user roles
-		/// {2} : current store id
-		/// </remarks>
-		public const string SITEMAP_PAGE_MODEL_KEY = "sm.pres.sitemap.page-{0}-{1}-{2}";
-
-		/// <summary>
-		/// Key for seo sitemap
-		/// </summary>
-		/// <remarks>
-		/// {0} : language id
-		/// {1} : current user roles
-		/// {2} : current store id
-		/// </remarks>
-		public const string SITEMAP_XML_MODEL_KEY = "sm.pres.sitemap.xml-{0}-{1}-{2}";
-		public const string SITEMAP_PATTERN_KEY = "sm.pres.sitemap";
-
         private readonly ICacheManager _cacheManager;
         
         public ModelCacheEventConsumer(Func<string, ICacheManager> cache)
@@ -490,6 +480,7 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(MANUFACTURER_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_SPECS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(TOPIC_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(TOPIC_WIDGET_BYZONE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_BREADCRUMB_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_MANUFACTURERS_PATTERN_KEY);
@@ -503,6 +494,7 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(MANUFACTURER_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_SPECS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(TOPIC_PATTERN_KEY);
+            _cacheManager.RemoveByPattern(TOPIC_WIDGET_BYZONE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_BREADCRUMB_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_MANUFACTURERS_PATTERN_KEY);
@@ -535,7 +527,6 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(HOMEPAGE_BESTSELLERS_IDS_PATTERN_KEY); //depends on CatalogSettings.NumberOfBestsellersOnHomepage
             _cacheManager.RemoveByPattern(BLOG_PATTERN_KEY); //depends on BlogSettings.NumberOfTags
             _cacheManager.RemoveByPattern(NEWS_PATTERN_KEY); //depends on NewsSettings.MainPageNewsCount
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY); //depends on sitemap settings
         }
         
         //manufacturers
@@ -543,21 +534,18 @@ namespace SmartStore.Web.Infrastructure.Cache
         {
             _cacheManager.RemoveByPattern(MANUFACTURER_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_MANUFACTURERS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityUpdated<Manufacturer> eventMessage)
         {
             _cacheManager.RemoveByPattern(MANUFACTURER_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_MANUFACTURERS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(MANUFACTURER_PICTURE_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityDeleted<Manufacturer> eventMessage)
         {
             _cacheManager.RemoveByPattern(MANUFACTURER_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCT_MANUFACTURERS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(MANUFACTURER_PICTURE_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
 
         //product manufacturers
@@ -582,7 +570,6 @@ namespace SmartStore.Web.Infrastructure.Cache
         {
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_CHILD_IDENTIFIERS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityUpdated<Category> eventMessage)
         {
@@ -590,7 +577,6 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_PICTURE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_CHILD_IDENTIFIERS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityDeleted<Category> eventMessage)
         {
@@ -598,7 +584,6 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_PICTURE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(CATEGORY_CHILD_IDENTIFIERS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
 
         //product categories
@@ -625,7 +610,6 @@ namespace SmartStore.Web.Infrastructure.Cache
         public void HandleEvent(EntityInserted<Product> eventMessage)
         {
             _cacheManager.RemoveByPattern(CATEGORY_NAVIGATION_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityUpdated<Product> eventMessage)
         {
@@ -635,7 +619,6 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(CART_PICTURE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(HOMEPAGE_BESTSELLERS_IDS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCTS_ALSO_PURCHASED_IDS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityDeleted<Product> eventMessage)
         {
@@ -643,7 +626,6 @@ namespace SmartStore.Web.Infrastructure.Cache
             _cacheManager.RemoveByPattern(PRODUCT_DEFAULTPICTURE_PATTERN_KEY);
             _cacheManager.RemoveByPattern(HOMEPAGE_BESTSELLERS_IDS_PATTERN_KEY);
             _cacheManager.RemoveByPattern(PRODUCTS_ALSO_PURCHASED_IDS_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
 
         //product tags
@@ -707,19 +689,16 @@ namespace SmartStore.Web.Infrastructure.Cache
         public void HandleEvent(EntityInserted<Topic> eventMessage)
         {
             _cacheManager.RemoveByPattern(TOPIC_WIDGET_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityUpdated<Topic> eventMessage)
         {
             _cacheManager.RemoveByPattern(TOPIC_PATTERN_KEY);
             _cacheManager.RemoveByPattern(TOPIC_WIDGET_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         public void HandleEvent(EntityDeleted<Topic> eventMessage)
         {
             _cacheManager.RemoveByPattern(TOPIC_PATTERN_KEY);
             _cacheManager.RemoveByPattern(TOPIC_WIDGET_PATTERN_KEY);
-			_cacheManager.RemoveByPattern(SITEMAP_PATTERN_KEY);
         }
         
         //Category templates

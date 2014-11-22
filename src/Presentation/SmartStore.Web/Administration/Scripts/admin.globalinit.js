@@ -1,67 +1,42 @@
 /// <reference path="admin.common.js" />
 /// <reference path="admin.catalog.js" />
 
-(function ($, window, document, undefined) {
+(function ($) {
     
-	var _commonPluginFactories = [
-		// select2
-		function (ctx) {
-			ctx.find(".adminData select:not(.noskin), .adminData input:hidden[data-select]").selectWrapper();
-		},
-		// tooltips
-		function (ctx) {
-			ctx.find(".cph").tooltip({
-				selector: "a.hint",
-				placement: "left",
-				trigger: 'hover',
-				delay: { show: 400, hide: 0 }
-			});
-		},
-		// Telerik
-		function (ctx) {
-			Hacks.Telerik.handleButton(ctx.find(".t-button").filter(function (index) {
-				// reject .t-button, that has a .t-group-indicator as parent
-				return !$(this).parent().hasClass("t-group-indicator");
-			}));
-
-			// skin telerik grids with bootstrap table
-			ctx.find(".t-grid > table").addClass("table");
-		},
-		// btn-trigger
-		function (ctx) {
-			// Temp only: delegates anchor clicks to corresponding form-button.
-			ctx.find("a[rel='btn-trigger']").click(function () {
-				var el = $(this);
-				var target = el.data("target");
-				var action = el.data("action");
-				var button = el.closest("form").find("button[type=submit][name=" + target + "][value=" + action + "]");
-				button.click();
-				return false;
-			});
-		},
-	];
-
-
-	/* 
-	Helpful in AJAX scenarios, where jQuery plugins has to be applied 
-	to newly created html.
-	*/
-	window.applyCommonPlugins = function (/* jQuery */ context) {
-		$.each(_commonPluginFactories, function (i, val) {
-			val.call(this, $(context));
-		});
-	}
-
     $(document).ready(function () {
 
         var html = $("html");
 
         html.removeClass("not-ready").addClass("ready");
 
-		applyCommonPlugins($("body"));
+        $(".adminData select:not(.noskin), .adminData input:hidden[data-select]").selectWrapper();
+        Hacks.Telerik.handleTextBox($(".text-box.single-line, textarea"));
+        Hacks.Telerik.handleButton($(".t-button").filter(function (index) {
+            // reject .t-button, that has a .t-group-indicator as parent
+            return !$(this).parent().hasClass("t-group-indicator");
+        }));
 
+        // skin telerik grids with bootstrap table
+        $(".t-grid > table").addClass("table table-hover");
+
+        // activate tooltips
+        $(".cph").tooltip({
+            selector: "a.hint",
+            placement: "left",
+            delay: { show: 400, hide: 0 }
+        });
         $("#page").tooltip({
             selector: "a[rel=tooltip], .tooltip-toggle"
+        });
+
+        // Temp only: delegates anchor clicks to corresponding form-button.
+        $("a[rel='btn-trigger']").click(function () {
+            var el = $(this);
+            var target = el.data("target");
+            var action = el.data("action");
+            var button = el.closest("form").find("button[type=submit][name=" + target + "][value=" + action + "]");
+            button.click();
+            return false;
         });
 
         // Temp only
@@ -98,8 +73,9 @@
 
         // sticky section-header
         var navbar = $("#navbar");
-        var navbarHeight = navbar.height() || 1;
+        var navbarHeight = navbar.outerHeight() || 0;
         var sectionHeader = $('.section-header');
+        var sectionHeaderTop = sectionHeader.offset().top - parseFloat(sectionHeader.css('margin-top').replace(/auto/, 0));
         var sectionHeaderHasButtons = undefined;
 
         $(window).on("scroll resize", function (e) {
@@ -107,12 +83,10 @@
                 sectionHeaderHasButtons = sectionHeader.find(".options").children().length > 0;
             }
             if (sectionHeaderHasButtons === true) {
-            	var y = $(this).scrollTop();
-                sectionHeader.toggleClass("sticky", y >= navbarHeight);
+                var y = $(this).scrollTop();
+                sectionHeader.toggleClass("sticky", y >= sectionHeaderTop - navbarHeight);
             }
         });
-
-        $(window).trigger('resize');
 
         $(window).load(function () {
 
@@ -123,9 +97,6 @@
             var fitContentToWindow = function (initial) {
                 var content = $('#content');
 
-                if (!content.length)
-                	return;
-
                 var height = initialHeight = content.height(),
                              outerHeight,
                              winHeight = $(document).height(),
@@ -135,7 +106,7 @@
                 if (initial === true) {
                     top = content.offset().top;
                     offset = content.outerHeight(false) - content.height();
-                    if ($('html').hasClass('wkit')) offset += 2; // dont know why!
+                    if ($.browser.chrome) offset += 2; // dont know why!
                     content.data("initial-height", initialHeight)
                                        .data("initial-top", top)
                                        .data("initial-offset", offset);
@@ -157,4 +128,4 @@
     });
 
 
-})( jQuery, this, document );
+})(jQuery);

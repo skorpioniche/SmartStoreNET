@@ -7,7 +7,7 @@ namespace SmartStore.Services.Shipping
     /// <summary>
     /// Provides an interface of shipping rate computation method
     /// </summary>
-    public partial interface IShippingRateComputationMethod : IProvider, IUserEditable
+    public partial interface IShippingRateComputationMethod : IPlugin
     {
         /// <summary>
         /// Gets a shipping rate computation method type
@@ -32,5 +32,13 @@ namespace SmartStore.Services.Shipping
         /// Gets a shipment tracker
         /// </summary>
         IShipmentTracker ShipmentTracker { get; }
+
+        /// <summary>
+        /// Gets a route for provider configuration
+        /// </summary>
+        /// <param name="actionName">Action name</param>
+        /// <param name="controllerName">Controller name</param>
+        /// <param name="routeValues">Route values</param>
+        void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues);
     }
 }

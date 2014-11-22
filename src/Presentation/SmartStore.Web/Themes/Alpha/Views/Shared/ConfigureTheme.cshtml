@@ -10,6 +10,17 @@
     Layout = null;
 }
 
+@functions {
+    protected override string ThemeName
+    {
+        get
+        {
+            return "Alpha";
+        }
+    }
+}
+
+
 @(Html.SmartStore().TabStrip().Name("theme-alpha-edit").HtmlAttributes(new { @class="theme-edit" }).Items(x =>
 {
     var tabCommon = x.Add().Text(T("Common.General").Text).Content(@TabCommon()).Selected(true);
@@ -41,13 +52,27 @@
 @helper TabButtons()
 {
     <table class="adminContent">
-        @ThemeVarEditor("BtnBackground")
-        @ThemeVarEditor("BtnPrimaryBackground")
-        @ThemeVarEditor("BtnInfoBackground")
-        @ThemeVarEditor("BtnSuccessBackground")
-        @ThemeVarEditor("BtnWarningBackground")
-        @ThemeVarEditor("BtnDangerBackground")
-        @ThemeVarEditor("BtnInverseBackground")
+        @ThemeVarEditor("BtnBackground", "Default")
+        @ThemeVarEditor("BtnBackgroundHighlight")
+        @ThemeVarEditor("BtnColor")
+        @ThemeVarEditor("BtnPrimaryBackground", "Primary")
+        @ThemeVarEditor("BtnPrimaryBackgroundHighlight")
+        @ThemeVarEditor("BtnPrimaryColor")
+        @ThemeVarEditor("BtnInfoBackground", "Info")
+        @ThemeVarEditor("BtnInfoBackgroundHighlight")
+        @ThemeVarEditor("BtnInfoColor")
+        @ThemeVarEditor("BtnSuccessBackground", "Success")
+        @ThemeVarEditor("BtnSuccessBackgroundHighlight")
+        @ThemeVarEditor("BtnSuccessColor")
+        @ThemeVarEditor("BtnWarningBackground", "Warning")
+        @ThemeVarEditor("BtnWarningBackgroundHighlight")
+        @ThemeVarEditor("BtnWarningColor")
+        @ThemeVarEditor("BtnDangerBackground", "Danger")
+        @ThemeVarEditor("BtnDangerBackgroundHighlight")
+        @ThemeVarEditor("BtnDangerColor")
+        @ThemeVarEditor("BtnInverseBackground", "Inverse")
+        @ThemeVarEditor("BtnInverseBackgroundHighlight")
+        @ThemeVarEditor("BtnInverseColor")
     </table>
 }
 
@@ -85,8 +110,7 @@
         @ThemeVarEditor("ShopBarIconColor")
         @ThemeVarEditor("ShopBarLabel")
 
-        @ThemeVarEditor("DisplayNavbar", "Navbar")
-        @ThemeVarEditor("InverseNavbar")
+        @ThemeVarEditor("InverseNavbar", "Navbar")
         @ThemeVarEditor("NavbarHeight")
         @ThemeVarEditor("NavbarBackgroundHighlight")
         @ThemeVarEditor("NavbarText")
@@ -161,15 +185,15 @@
         @ThemeVarEditor("TableBackgroundAccent")
         @ThemeVarEditor("TableBackgroundHover")
         @ThemeVarEditor("TableBorder")
-
-		@ThemeVarEditor("ContainerRadius", "Container")
-		@ThemeVarEditor("ContainerHeaderBackground")
-		@ThemeVarEditor("ContainerHeaderFontColor")
-		@ThemeVarEditor("ContainerHeaderHeight")
-		@ThemeVarEditor("ContainerBodyBackground")
+        @ThemeVarEditor("ContainerBackground", "Container")
+        @ThemeVarEditor("ContainerBorder")
+        @ThemeVarEditor("ContainerRadius")
+        @ThemeVarEditor("ContainerBodyLinkColor")
+        @ThemeVarEditor("ContainerHeaderBackground")
+        @ThemeVarEditor("ContainerHeaderFontColor")
+        @ThemeVarEditor("ContainerHeaderHeight")
+        @ThemeVarEditor("ContainerBodyBackground")
         @ThemeVarEditor("ContainerBodyFontColor")
-		@ThemeVarEditor("ContainerBodyLinkColor")
-		@ThemeVarEditor("ContainerBorder")
 
     </table>
 }
@@ -214,9 +238,16 @@
     if (groupName != null) 
     {
         <tr>
-            <td colspan="2" class="admin-config-group">
-                <div class="title">@groupName</div>
-            </td>
+            @if(groupName != "")
+            {
+                <td colspan="2" class="group-name">
+                    <h4>@groupName</h4>
+                    <hr/>
+                </td>
+            }
+            else {
+                <td colspan="2"><hr /></td>
+            }
         </tr>
     }
     <tr>

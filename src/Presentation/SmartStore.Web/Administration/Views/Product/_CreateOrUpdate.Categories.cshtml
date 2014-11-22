@@ -6,13 +6,7 @@
 {
     if (Model.NumberOfAvailableCategories > 0)
     {
-        <script>
-			function onProductCategoryEdit(e) {
-                $(e.form).find('#Category').select2('val', e.dataItem['CategoryId']);
-            }
-        </script>
-		
-		@(Html.Telerik().Grid<ProductModel.ProductCategoryModel>()
+        @(Html.Telerik().Grid<ProductModel.ProductCategoryModel>()
             .Name("productcategories-grid")
             .DataKeys(keys =>
             {
@@ -47,6 +41,12 @@
             .ToolBar(commands => commands.Insert())
             .ClientEvents(events => events.OnEdit("onProductCategoryEdit"))
             .EnableCustomBinding(true))
+
+        <script type="text/javascript">
+            function onProductCategoryEdit(e) {
+                $(e.form).find('#Category').select2('val', e.dataItem['CategoryId']);
+            }
+        </script>
     }
     else
     {

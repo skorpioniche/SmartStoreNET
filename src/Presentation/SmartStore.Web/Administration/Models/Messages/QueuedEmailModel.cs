@@ -56,7 +56,7 @@ namespace SmartStore.Admin.Models.Messages
         public int SentTries { get; set; }
 
         [SmartResourceDisplayName("Admin.System.QueuedEmails.Fields.SentOn")]
-		[DisplayFormat(DataFormatString = "{0}", NullDisplayText = "n/a")]
+        [DisplayFormat(DataFormatString="{0}", NullDisplayText="Not sent yet")]
         public DateTime? SentOn { get; set; }
 
         [SmartResourceDisplayName("Admin.System.QueuedEmails.Fields.EmailAccountName")]

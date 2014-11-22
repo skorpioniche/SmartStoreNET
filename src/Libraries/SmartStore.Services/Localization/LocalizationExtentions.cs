@@ -10,7 +10,6 @@ using System.Xml;
 using SmartStore.Core.Data;
 using SmartStore.Utilities;
 using System.Collections.Concurrent;
-using SmartStore.Core.ComponentModel;
 
 namespace SmartStore.Services.Localization
 {

@@ -170,7 +170,6 @@ namespace SmartStore.Services.Catalog
 				IsShipEnabled = product.IsShipEnabled,
 				IsFreeShipping = product.IsFreeShipping,
 				AdditionalShippingCharge = product.AdditionalShippingCharge,
-				IsEsd = product.IsEsd,
 				IsTaxExempt = product.IsTaxExempt,
 				TaxCategoryId = product.TaxCategoryId,
 				ManageInventoryMethod = product.ManageInventoryMethod,

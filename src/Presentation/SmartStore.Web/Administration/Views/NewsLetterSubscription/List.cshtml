@@ -6,15 +6,15 @@
 }
 <div class="section-header">
     <div class="title">
-        <i class="fa fa-envelope-o"></i>
+        <i class="icon icon-envelope-alt"></i>
         @T("Admin.Promotions.newsLetterSubscriptions")
     </div>
     <div class="options">
         <a href="@Url.Action("ExportCsv")" class="btn">
-			<i class="fa fa-arrow-circle-o-down"></i>&nbsp;@T("Admin.Common.ExportToCsv")
+			<i class="icon-download-alt"></i>&nbsp;@T("Admin.Common.ExportToCsv")
 		</a>
         <a href="#importcsv-window" data-toggle="modal" class="btn">
-			<i class="fa fa-arrow-circle-o-up"></i>&nbsp;@T("Admin.Common.ImportFromCsv")
+			<i class="icon-upload"></i>&nbsp;@T("Admin.Common.ImportFromCsv")
 		</a>
     </div>
 </div>
@@ -42,7 +42,8 @@
 		</td>
 		<td class="adminData">
             <button type="submit" id="search-newsLetterSubscriptions" value="search-newsLetterSubscriptions"
-                class="btn"><i class="fa fa-search"></i>&nbsp;@T("Admin.Common.Search")</button>
+                class="btn"><i class="icon-search icon-white"></i>&nbsp;@T("Admin.Common.Search")
+			</button>
         </td>
     </tr>
 </table>

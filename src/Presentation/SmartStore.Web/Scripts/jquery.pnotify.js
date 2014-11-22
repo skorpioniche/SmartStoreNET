@@ -38,20 +38,20 @@
 			bootstrap: {
 				container: "alert",
 				notice: "",
-				notice_icon: "fa fa-exclamation-circle",
+				notice_icon: "icon-exclamation-sign",
 				info: "alert-info",
-				info_icon: "fa fa-info-circle",
+				info_icon: "icon-info-sign",
 				success: "alert-success",
-				success_icon: "fa fa-check-circle",
+				success_icon: "icon-ok-sign",
 				error: "alert-error",
-				error_icon: "fa fa-exclamation-triangle",
-				closer: "fa fa-times",
-				pin_up: "fa fa-pause",
-				pin_down: "fa fa-play",
+				error_icon: "icon-warning-sign",
+				closer: "icon-remove",
+				pin_up: "icon-pause",
+				pin_down: "icon-play",
 				hi_menu: "well",
 				hi_btn: "btn",
 				hi_btnhov: "",
-				hi_hnd: "fa fa-chevron-down"
+				hi_hnd: "icon-chevron-down"
 			}
 		};
 	// Set global variables.

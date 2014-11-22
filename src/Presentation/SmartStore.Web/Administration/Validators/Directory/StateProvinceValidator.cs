@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Directory
 {
-	public partial class StateProvinceValidator : AbstractValidator<StateProvinceModel>
+    public class StateProvinceValidator : AbstractValidator<StateProvinceModel>
     {
         public StateProvinceValidator(ILocalizationService localizationService)
         {

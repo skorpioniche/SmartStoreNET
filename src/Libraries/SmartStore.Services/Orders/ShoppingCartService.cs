@@ -375,8 +375,8 @@ namespace SmartStore.Services.Orders
                     decimal minimumCustomerEnteredPrice = _currencyService.ConvertFromPrimaryStoreCurrency(product.MinimumCustomerEnteredPrice, _workContext.WorkingCurrency);
                     decimal maximumCustomerEnteredPrice = _currencyService.ConvertFromPrimaryStoreCurrency(product.MaximumCustomerEnteredPrice, _workContext.WorkingCurrency);
                     warnings.Add(string.Format(_localizationService.GetResource("ShoppingCart.CustomerEnteredPrice.RangeError"),
-                        _priceFormatter.FormatPrice(minimumCustomerEnteredPrice, true, false),
-                        _priceFormatter.FormatPrice(maximumCustomerEnteredPrice, true, false)));
+                        _priceFormatter.FormatPrice(minimumCustomerEnteredPrice, false, false),
+                        _priceFormatter.FormatPrice(maximumCustomerEnteredPrice, false, false)));
                 }
             }
 
@@ -532,7 +532,7 @@ namespace SmartStore.Services.Orders
                         }
                     }
 
-					if (!found && bundleItem != null && bundleItem.FilterAttributes && !bundleItem.AttributeFilters.Any(x => x.AttributeId == pva2.ProductAttributeId))
+					if (!found && bundleItem != null && bundleItem.FilterAttributes && !bundleItem.AttributeFilters.Exists(x => x.AttributeId == pva2.ProductAttributeId))
 					{
 						found = true;	// attribute is filtered out on bundle item level... it cannot be selected by customer
 					}

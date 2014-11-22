@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Localization
 {
-	public partial class GenericAttributeValidator : AbstractValidator<GenericAttributeModel>
+    public class GenericAttributeValidator : AbstractValidator<GenericAttributeModel>
     {
         public GenericAttributeValidator(ILocalizationService localizationService)
         {

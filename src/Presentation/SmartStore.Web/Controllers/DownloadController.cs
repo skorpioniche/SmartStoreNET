@@ -27,12 +27,12 @@ namespace SmartStore.Web.Controllers
             this._workContext = workContext;
             this._customerSettings = customerSettings;
         }
-
-		public ActionResult Sample(int id /* productId */)
+        
+        public ActionResult Sample(int productId)
         {
-            var product = _productService.GetProductById(id);
+            var product = _productService.GetProductById(productId);
             if (product == null)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             if (!product.HasSampleDownload)
                 return Content("Product variant doesn't have a sample download.");
@@ -56,14 +56,11 @@ namespace SmartStore.Web.Controllers
             }
         }
 
-		public ActionResult GetDownload(Guid id /* orderItemId */, bool agree = false)
+        public ActionResult GetDownload(Guid orderItemId, bool agree = false)
         {
-			if (id == Guid.Empty)
-				return HttpNotFound();
-
-			var orderItem = _orderService.GetOrderItemByGuid(id);
+            var orderItem = _orderService.GetOrderItemByGuid(orderItemId);
             if (orderItem == null)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var order = orderItem.Order;
             var product = orderItem.Product;
@@ -86,7 +83,7 @@ namespace SmartStore.Web.Controllers
             if (product.HasUserAgreement)
             {
                 if (!agree)
-					return RedirectToAction("UserAgreement", "Customer", new { id = id });
+					return RedirectToRoute("DownloadUserAgreement", new { orderItemId = orderItemId });
             }
 
 
@@ -119,14 +116,11 @@ namespace SmartStore.Web.Controllers
             }
         }
 
-		public ActionResult GetLicense(Guid id /* orderItemId */)
+        public ActionResult GetLicense(Guid orderItemId)
         {
-			if (id == Guid.Empty)
-				return HttpNotFound();
-			
-			var orderItem = _orderService.GetOrderItemByGuid(id);
+            var orderItem = _orderService.GetOrderItemByGuid(orderItemId);
             if (orderItem == null)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var order = orderItem.Order;
             var product = orderItem.Product;

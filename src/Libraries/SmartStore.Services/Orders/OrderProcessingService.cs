@@ -31,7 +31,6 @@ using SmartStore.Services.Security;
 using SmartStore.Services.Shipping;
 using SmartStore.Services.Tax;
 using SmartStore.Services.Seo;
-using SmartStore.Core.Plugins;
 
 namespace SmartStore.Services.Orders
 {
@@ -478,7 +477,7 @@ namespace SmartStore.Services.Orders
         /// </summary>
         /// <param name="processPaymentRequest">Process payment request</param>
         /// <returns>Place order result</returns>
-        public virtual PlaceOrderResult PlaceOrder(ProcessPaymentRequest processPaymentRequest, Dictionary<string, string> extraData)
+        public virtual PlaceOrderResult PlaceOrder(ProcessPaymentRequest processPaymentRequest)
         {
             //think about moving functionality of processing recurring orders (after the initial order was placed) to ProcessNextRecurringPayment() method
             if (processPaymentRequest == null)
@@ -774,7 +773,6 @@ namespace SmartStore.Services.Orders
                     //VAT number
                     vatNumber = initialOrder.VatNumber;
                 }
-				processPaymentRequest.OrderTax = orderTaxTotal;
 
                 //order total (and applied discounts, gift cards, reward points)
                 decimal? orderTotal = null;
@@ -876,7 +874,7 @@ namespace SmartStore.Services.Orders
                     skipPaymentWorkflow = true;
 
                 //payment workflow
-                Provider<IPaymentMethod> paymentMethod = null;
+                IPaymentMethod paymentMethod = null;
                 if (!skipPaymentWorkflow)
                 {
                     paymentMethod = _paymentService.LoadPaymentMethodBySystemName(processPaymentRequest.PaymentMethodSystemName);
@@ -1004,7 +1002,7 @@ namespace SmartStore.Services.Orders
                         var shippingStatus = ShippingStatus.NotYetShipped;
                         if (!shoppingCartRequiresShipping)
                             shippingStatus = ShippingStatus.ShippingNotRequired;
-                        
+
                         var order = new Order()
                         {
 							StoreId = processPaymentRequest.StoreId,
@@ -1040,6 +1038,8 @@ namespace SmartStore.Services.Orders
                             CardCvv2 = processPaymentResult.AllowStoringCreditCardNumber ? _encryptionService.EncryptText(processPaymentRequest.CreditCardCvv2) : string.Empty,
                             CardExpirationMonth = processPaymentResult.AllowStoringCreditCardNumber ? _encryptionService.EncryptText(processPaymentRequest.CreditCardExpireMonth.ToString()) : string.Empty,
                             CardExpirationYear = processPaymentResult.AllowStoringCreditCardNumber ? _encryptionService.EncryptText(processPaymentRequest.CreditCardExpireYear.ToString()) : string.Empty,
+
+                            //codehint: sm-add begin
                             AllowStoringDirectDebit = processPaymentResult.AllowStoringDirectDebit,
                             DirectDebitAccountHolder = processPaymentResult.AllowStoringDirectDebit ? _encryptionService.EncryptText(processPaymentRequest.DirectDebitAccountHolder) : string.Empty,
                             DirectDebitAccountNumber = processPaymentResult.AllowStoringDirectDebit ? _encryptionService.EncryptText(processPaymentRequest.DirectDebitAccountNumber) : string.Empty,
@@ -1048,6 +1048,8 @@ namespace SmartStore.Services.Orders
                             DirectDebitBIC = processPaymentResult.AllowStoringDirectDebit ? _encryptionService.EncryptText(processPaymentRequest.DirectDebitBic) : string.Empty,
                             DirectDebitCountry = processPaymentResult.AllowStoringDirectDebit ? _encryptionService.EncryptText(processPaymentRequest.DirectDebitCountry) : string.Empty,
                             DirectDebitIban = processPaymentResult.AllowStoringDirectDebit ? _encryptionService.EncryptText(processPaymentRequest.DirectDebitIban) : string.Empty,
+                            //codehint: sm-add end
+
                             PaymentMethodSystemName = processPaymentRequest.PaymentMethodSystemName,
                             AuthorizationTransactionId = processPaymentResult.AuthorizationTransactionId,
                             AuthorizationTransactionCode = processPaymentResult.AuthorizationTransactionCode,
@@ -1065,8 +1067,7 @@ namespace SmartStore.Services.Orders
                             ShippingRateComputationMethodSystemName = shippingRateComputationMethodSystemName,
                             VatNumber = vatNumber,
                             CreatedOnUtc = DateTime.UtcNow,
-							UpdatedOnUtc = DateTime.UtcNow,
-                            CustomerOrderComment = extraData.ContainsKey("CustomerComment") ? extraData["CustomerComment"] : ""
+							UpdatedOnUtc = DateTime.UtcNow
                         };
                         _orderService.InsertOrder(order);
 
@@ -1520,7 +1521,7 @@ namespace SmartStore.Services.Orders
                 };
 
                 //place a new order
-                var result = this.PlaceOrder(paymentInfo, new Dictionary<string, string>());
+                var result = this.PlaceOrder(paymentInfo);
                 if (result.Success)
                 {
                     if (result.PlacedOrder == null)
@@ -1844,17 +1845,17 @@ namespace SmartStore.Services.Orders
 		{
 			var oi = context.OrderItem;
 
+			context.InventoryOld = context.InventoryNew = oi.Product.StockQuantity;
 			context.RewardPointsOld = context.RewardPointsNew = oi.Order.Customer.GetRewardPointsBalance();
 
 			if (context.UpdateTotals && oi.Order.OrderStatusId <= (int)OrderStatus.Pending)
 			{
-				decimal priceInclTax = Round(context.QuantityNew * oi.UnitPriceInclTax);
-				decimal priceExclTax = Round(context.QuantityNew * oi.UnitPriceExclTax);
+				decimal priceInclTax = Round(oi.Quantity * oi.UnitPriceInclTax);
+				decimal priceExclTax = Round(oi.Quantity * oi.UnitPriceExclTax);
 
 				decimal deltaPriceInclTax = priceInclTax - (context.IsNewOrderItem ? decimal.Zero : oi.PriceInclTax);
 				decimal deltaPriceExclTax = priceExclTax - (context.IsNewOrderItem ? decimal.Zero : oi.PriceExclTax);
 
-				oi.Quantity = context.QuantityNew;
 				oi.PriceInclTax = Round(priceInclTax);
 				oi.PriceExclTax = Round(priceExclTax);
 
@@ -1883,8 +1884,9 @@ namespace SmartStore.Services.Orders
 			}
 
 			if (context.AdjustInventory && context.QuantityDelta != 0)
-			{
-				context.Inventory = _productService.AdjustInventory(oi, context.QuantityDelta > 0, Math.Abs(context.QuantityDelta));
+			{				
+				_productService.AdjustInventory(oi, context.QuantityDelta > 0, Math.Abs(context.QuantityDelta));
+				context.InventoryNew = oi.Product.StockQuantity;
 			}
 
 			if (context.UpdateRewardPoints && context.QuantityDelta < 0)

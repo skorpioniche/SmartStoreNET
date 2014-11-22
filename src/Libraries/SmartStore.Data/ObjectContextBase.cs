@@ -30,6 +30,7 @@ namespace SmartStore.Data
     {
 		private static bool? s_isSqlServer2012OrHigher = null;
 
+
         #region Ctor
 
 		/// <summary>
@@ -138,6 +139,12 @@ namespace SmartStore.Data
 
         #region IDbContext members
 
+		protected override void Dispose(bool disposing)
+		{
+			this.EventPublisher = null;
+			base.Dispose(disposing);
+		}
+
         public virtual string CreateDatabaseScript()
         {
             return ((IObjectContextAdapter)this).ObjectContext.CreateDatabaseScript();
@@ -187,14 +194,11 @@ namespace SmartStore.Data
 			}
 
 			var result = this.Database.SqlQuery<TEntity>(commandText, parameters).ToList();
-			if (!ForceNoTracking)
+			using (var scope = new DbContextScope(this, autoDetectChanges: false))
 			{
-				using (var scope = new DbContextScope(this, autoDetectChanges: false))
+				for (int i = 0; i < result.Count; i++)
 				{
-					for (int i = 0; i < result.Count; i++)
-					{
-						result[i] = AttachEntityToContext(result[i]);
-					}
+					result[i] = AttachEntityToContext(result[i]);
 				}
 			}
 			return result;
@@ -222,12 +226,9 @@ namespace SmartStore.Data
 				// database call
 				var reader = cmd.ExecuteReader();
 				var result = ((IObjectContextAdapter)(this)).ObjectContext.Translate<TEntity>(reader).ToList();
-				if (!ForceNoTracking)
+				for (int i = 0; i < result.Count; i++)
 				{
-					for (int i = 0; i < result.Count; i++)
-					{
-						result[i] = AttachEntityToContext(result[i]);
-					}
+					result[i] = AttachEntityToContext(result[i]);
 				}
 				// close up the reader, we're done saving results
 				reader.Close();
@@ -385,7 +386,7 @@ namespace SmartStore.Data
         // codehint: sm-add (required for UoW implementation)
         public string Alias { get; internal set; }
 
-        // performance on bulk inserts
+        // codehint: sm-add (performance on bulk inserts)
         public bool AutoDetectChangesEnabled
         {
             get
@@ -398,7 +399,7 @@ namespace SmartStore.Data
             }
         }
 
-        // performance on bulk inserts
+        // codehint: sm-add (performance on bulk inserts)
         public bool ValidateOnSaveEnabled
         {
             get
@@ -411,6 +412,7 @@ namespace SmartStore.Data
             }
         }
 
+        // codehint: sm-add
         public bool ProxyCreationEnabled
         {
             get
@@ -422,8 +424,6 @@ namespace SmartStore.Data
                 this.Configuration.ProxyCreationEnabled = value;
             }
         }
-
-		public bool ForceNoTracking { get; set; }
 
         #endregion
 

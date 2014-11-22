@@ -101,8 +101,7 @@ namespace SmartStore.Services.Catalog
 		/// </summary>
 		/// <param name="sci">Shopping cart item</param>
 		/// <param name="decrease">A value indicating whether to increase or descrease product stock quantity</param>
-		/// <returns>Adjust inventory result</returns>
-		AdjustInventoryResult AdjustInventory(OrganizedShoppingCartItem sci, bool decrease);
+		void AdjustInventory(OrganizedShoppingCartItem sci, bool decrease);
 
 		/// <summary>
 		/// Adjusts inventory
@@ -110,8 +109,7 @@ namespace SmartStore.Services.Catalog
 		/// <param name="orderItem">Order item</param>
 		/// <param name="decrease">A value indicating whether to increase or descrease product stock quantity</param>
 		/// <param name="quantity">Quantity</param>
-		/// <returns>Adjust inventory result</returns>
-		AdjustInventoryResult AdjustInventory(OrderItem orderItem, bool decrease, int quantity);
+		void AdjustInventory(OrderItem orderItem, bool decrease, int quantity);
 
         /// <summary>
         /// Adjusts inventory
@@ -120,8 +118,7 @@ namespace SmartStore.Services.Catalog
 		/// <param name="decrease">A value indicating whether to increase or descrease product stock quantity</param>
         /// <param name="quantity">Quantity</param>
         /// <param name="attributesXml">Attributes in XML format</param>
-		/// <returns>Adjust inventory result</returns>
-		AdjustInventoryResult AdjustInventory(Product product, bool decrease, int quantity, string attributesXml);
+        void AdjustInventory(Product product, bool decrease, int quantity, string attributesXml);
 
         /// <summary>
         /// Update HasTierPrices property (used for performance optimization)

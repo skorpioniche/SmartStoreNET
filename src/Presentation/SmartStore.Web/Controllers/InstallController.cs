@@ -6,7 +6,6 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.SessionState;
 using System.Web.Caching;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -31,7 +30,6 @@ using SmartStore.Utilities;
 namespace SmartStore.Web.Controllers
 {
 
-	[SessionState(SessionStateBehavior.ReadOnly)]
     public partial class InstallController : Controller
     {
         #region Fields
@@ -157,7 +155,7 @@ namespace SmartStore.Web.Controllers
                 builder.Password = password;
             }
             builder.PersistSecurityInfo = false;
-            //builder.MultipleActiveResultSets = true;
+            builder.MultipleActiveResultSets = true;
 
             // codehint: sm-add
             builder.UserInstance = false;
@@ -454,7 +452,6 @@ namespace SmartStore.Web.Controllers
 					// save settings
 					var dataProvider = model.DataProvider;
 					var settings = DataSettings.Current;
-					settings.AppVersion = SmartStoreVersion.Version;
 					settings.DataProvider = dataProvider;
 					settings.DataConnectionString = connectionString;
 					settings.Save();

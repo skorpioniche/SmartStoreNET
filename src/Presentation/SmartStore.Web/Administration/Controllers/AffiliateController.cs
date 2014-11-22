@@ -6,7 +6,6 @@ using SmartStore.Admin.Models.Affiliates;
 using SmartStore.Core;
 using SmartStore.Core.Domain.Affiliates;
 using SmartStore.Core.Domain.Common;
-using SmartStore.Core.Domain.Customers;
 using SmartStore.Core.Domain.Directory;
 using SmartStore.Services.Affiliates;
 using SmartStore.Services.Catalog;
@@ -38,8 +37,6 @@ namespace SmartStore.Admin.Controllers
         private readonly ICustomerService _customerService;
         private readonly IOrderService _orderService;
         private readonly IPermissionService _permissionService;
-		private readonly AdminAreaSettings _adminAreaSettings;
-		private readonly CustomerSettings _customerSettings;
 
         #endregion
 
@@ -50,9 +47,7 @@ namespace SmartStore.Admin.Controllers
             ICountryService countryService, IStateProvinceService stateProvinceService,
             IPriceFormatter priceFormatter, IAffiliateService affiliateService,
             ICustomerService customerService, IOrderService orderService,
-            IPermissionService permissionService,
-			AdminAreaSettings adminAreaSettings,
-			CustomerSettings customerSettings)
+            IPermissionService permissionService)
         {
             this._localizationService = localizationService;
             this._workContext = workContext;
@@ -65,8 +60,6 @@ namespace SmartStore.Admin.Controllers
             this._customerService = customerService;
             this._orderService = orderService;
             this._permissionService = permissionService;
-			this._adminAreaSettings = adminAreaSettings;
-			this._customerSettings = customerSettings;
         }
 
         #endregion
@@ -110,26 +103,19 @@ namespace SmartStore.Admin.Controllers
             model.Address.PhoneRequired = true;
             model.Address.FaxEnabled = true;
 
-			model.GridPageSize = _adminAreaSettings.GridPageSize;
-			model.UsernamesEnabled = _customerSettings.UsernamesEnabled;
-
             //address
             //model.Address.AvailableCountries.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
-			foreach (var c in _countryService.GetAllCountries(true))
-			{
-				model.Address.AvailableCountries.Add(new SelectListItem() { Text = c.Name, Value = c.Id.ToString(), Selected = (affiliate != null && c.Id == affiliate.Address.CountryId) });
-			}
+            foreach (var c in _countryService.GetAllCountries(true))
+                model.Address.AvailableCountries.Add(new SelectListItem() { Text = c.Name, Value = c.Id.ToString(), Selected = (affiliate != null && c.Id == affiliate.Address.CountryId) });
 
             var states = model.Address.CountryId.HasValue ? _stateProvinceService.GetStateProvincesByCountryId(model.Address.CountryId.Value, true).ToList() : new List<StateProvince>();
-			if (states.Count > 0)
-			{
-				foreach (var s in states)
-					model.Address.AvailableStates.Add(new SelectListItem() { Text = s.Name, Value = s.Id.ToString(), Selected = (affiliate != null && s.Id == affiliate.Address.StateProvinceId) });
-			}
-			else
-			{
-				model.Address.AvailableStates.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
-			}
+            if (states.Count > 0)
+            {
+                foreach (var s in states)
+                    model.Address.AvailableStates.Add(new SelectListItem() { Text = s.Name, Value = s.Id.ToString(), Selected = (affiliate != null && s.Id == affiliate.Address.StateProvinceId) });
+            }
+            else
+                model.Address.AvailableStates.Add(new SelectListItem() { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
         }
 
         #endregion
@@ -330,14 +316,9 @@ namespace SmartStore.Admin.Controllers
             {
                 Data = customers.Select(customer =>
                 {
-                    var customerModel = new AffiliateModel.AffiliatedCustomerModel()
-					{
-						Id = customer.Id,
-						Email = customer.Email,
-						Username = customer.Username,
-						FullName = customer.GetFullName()
-					};
-
+                    var customerModel = new AffiliateModel.AffiliatedCustomerModel();
+                    customerModel.Id = customer.Id;
+                    customerModel.Name = customer.Email;
                     return customerModel;
                 }),
                 Total = customers.TotalCount

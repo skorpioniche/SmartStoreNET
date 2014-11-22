@@ -1,19 +1,27 @@
-﻿using System;
+﻿#region Using...
+
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
-using System.Linq;
 using System.Web.Mvc;
 using System.Web.WebPages;
 using SmartStore.Core;
+using SmartStore.Core.Localization;
 using SmartStore.Core.Data;
 using SmartStore.Core.Infrastructure;
-using SmartStore.Core.Localization;
-using SmartStore.Core.Logging;
 using SmartStore.Core.Themes;
-using SmartStore.Web.Framework.Controllers;
-using SmartStore.Web.Framework.Localization;
+using SmartStore.Services.Localization;
+using SmartStore.Services.Themes;
 using SmartStore.Web.Framework.Themes;
+using SmartStore.Web.Framework.Localization;
+using SmartStore.Web.Framework.UI;
+using SmartStore.Collections;
+using System.Linq;
+using SmartStore.Core.Logging;
+using SmartStore.Web.Framework.Controllers;
+
+#endregion
 
 namespace SmartStore.Web.Framework.ViewEngines.Razor
 {
@@ -26,6 +34,7 @@ namespace SmartStore.Web.Framework.ViewEngines.Razor
 		private IList<NotifyEntry> _internalNotifications;
         private IThemeRegistry _themeRegistry;
         private IThemeContext _themeContext;
+        private ThemeManifest _themeManifest;
         private ExpandoObject _themeVars;
         private bool? _isHomePage;
 
@@ -241,15 +250,18 @@ namespace SmartStore.Web.Framework.ViewEngines.Razor
         {
             get
             {
-				EnsureThemeContextInitialized();
-				return _themeContext.CurrentTheme;
+                if (_themeManifest == null)
+                {
+                    EnsureThemeContextInitialized();
+                    _themeManifest = _themeRegistry.GetThemeManifest(this.ThemeName);
+                }
+                return _themeManifest;
             }
         }
 
         /// <summary>
         /// Gets the current theme name. Override this in configuration views.
         /// </summary>
-		[Obsolete("The theme name gets resolved automatically now. No need to override anymore.")]
         protected virtual string ThemeName
         {
             get

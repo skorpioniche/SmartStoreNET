@@ -182,7 +182,7 @@ namespace SmartStore.Web.Controllers
         public ActionResult List(NewsPagingFilteringModel command)
         {
             if (!_newsSettings.Enabled)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var model = new NewsItemListModel();
             model.WorkingLanguageId = _workContext.WorkingLanguage.Id;
@@ -208,7 +208,6 @@ namespace SmartStore.Web.Controllers
             return View(model);
         }
 
-		[ActionName("rss")]
         public ActionResult ListRss(int languageId)
         {
             var feed = new SyndicationFeed(
@@ -235,7 +234,7 @@ namespace SmartStore.Web.Controllers
         public ActionResult NewsItem(int newsItemId)
         {
             if (!_newsSettings.Enabled)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var newsItem = _newsService.GetNewsById(newsItemId);
             if (newsItem == null ||
@@ -244,7 +243,7 @@ namespace SmartStore.Web.Controllers
 				(newsItem.EndDateUtc.HasValue && newsItem.EndDateUtc.Value <= DateTime.UtcNow) ||
 				//Store mapping
 				!_storeMappingService.Authorize(newsItem))
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var model = new NewsItemModel();
             PrepareNewsItemModel(model, newsItem, true);
@@ -258,11 +257,11 @@ namespace SmartStore.Web.Controllers
         public ActionResult NewsCommentAdd(int newsItemId, NewsItemModel model, bool captchaValid)
         {
             if (!_newsSettings.Enabled)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             var newsItem = _newsService.GetNewsById(newsItemId);
             if (newsItem == null || !newsItem.Published || !newsItem.AllowComments)
-				return HttpNotFound();
+                return RedirectToRoute("HomePage");
 
             //validate CAPTCHA
             if (_captchaSettings.Enabled && _captchaSettings.ShowOnNewsCommentPage && !captchaValid)
@@ -319,7 +318,7 @@ namespace SmartStore.Web.Controllers
                 return Content("");
 
             string link = string.Format("<link href=\"{0}\" rel=\"alternate\" type=\"application/rss+xml\" title=\"{1}: News\" />",
-				Url.Action("rss", null, new { languageId = _workContext.WorkingLanguage.Id }, _webHelper.IsCurrentConnectionSecured() ? "https" : "http"), _storeContext.CurrentStore.Name);
+				Url.RouteUrl("NewsRSS", new { languageId = _workContext.WorkingLanguage.Id }, _webHelper.IsCurrentConnectionSecured() ? "https" : "http"), _storeContext.CurrentStore.Name);
 
             return Content(link);
         }

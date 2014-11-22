@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Plugins
 {
-	public partial class PluginValidator : AbstractValidator<PluginModel>
+    public class PluginValidator : AbstractValidator<PluginModel>
     {
         public PluginValidator(ILocalizationService localizationService)
         {

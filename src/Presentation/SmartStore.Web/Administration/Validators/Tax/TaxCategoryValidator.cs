@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Tax
 {
-	public partial class TaxCategoryValidator : AbstractValidator<TaxCategoryModel>
+    public class TaxCategoryValidator : AbstractValidator<TaxCategoryModel>
     {
         public TaxCategoryValidator(ILocalizationService localizationService)
         {

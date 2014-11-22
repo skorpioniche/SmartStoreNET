@@ -86,8 +86,7 @@ namespace SmartStore.Data.Tests.Affiliates
                     CreatedOnUtc = new DateTime(2010, 01, 01),
                 },
                 Deleted = true,
-				CreatedOnUtc = new DateTime(2010, 05, 06),
-				UpdatedOnUtc = new DateTime(2010, 01, 01)
+                CreatedOnUtc = new DateTime(2010, 05, 06)
             };
         }
     }

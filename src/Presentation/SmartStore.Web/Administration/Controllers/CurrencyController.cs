@@ -13,7 +13,6 @@ using SmartStore.Services.Localization;
 using SmartStore.Services.Security;
 using SmartStore.Services.Stores;
 using SmartStore.Web.Framework.Controllers;
-using SmartStore.Web.Framework.Plugins;
 using Telerik.Web.Mvc;
 
 namespace SmartStore.Admin.Controllers
@@ -33,7 +32,6 @@ namespace SmartStore.Admin.Controllers
         private readonly ILanguageService _languageService;
 		private readonly IStoreService _storeService;
 		private readonly IStoreMappingService _storeMappingService;
-		private readonly PluginMediator _pluginMediator;
 
         #endregion
 
@@ -45,8 +43,7 @@ namespace SmartStore.Admin.Controllers
             IPermissionService permissionService,
             ILocalizedEntityService localizedEntityService, ILanguageService languageService,
             IStoreService storeService, 
-            IStoreMappingService storeMappingService,
-			PluginMediator pluginMediator)
+            IStoreMappingService storeMappingService)
         {
             this._currencyService = currencyService;
             this._currencySettings = currencySettings;
@@ -58,7 +55,6 @@ namespace SmartStore.Admin.Controllers
             this._languageService = languageService;
 			this._storeService = storeService;
 			this._storeMappingService = storeMappingService;
-			this._pluginMediator = pluginMediator;
         }
         
         #endregion
@@ -162,9 +158,9 @@ namespace SmartStore.Admin.Controllers
             {
                 ViewBag.ExchangeRateProviders.Add(new SelectListItem()
                 {
-                    Text = _pluginMediator.GetLocalizedFriendlyName(erp.Metadata),
-					Value = erp.Metadata.SystemName,
-					Selected = erp.Metadata.SystemName.Equals(_currencySettings.ActiveExchangeRateProviderSystemName, StringComparison.InvariantCultureIgnoreCase)
+                    Text = erp.PluginDescriptor.FriendlyName,
+                    Value = erp.PluginDescriptor.SystemName,
+                    Selected = erp.PluginDescriptor.SystemName.Equals(_currencySettings.ActiveExchangeRateProviderSystemName, StringComparison.InvariantCultureIgnoreCase)
                 });
             }
             ViewBag.AutoUpdateEnabled = _currencySettings.AutoUpdateEnabled;

@@ -629,9 +629,8 @@ namespace SmartStore.Services.Orders
         /// <param name="rs">Return request status; null to load all entries</param>
 		/// <param name="pageIndex">Page index</param>
 		/// <param name="pageSize">Page size</param>
-		/// <param name="id">Return request Id</param>
         /// <returns>Return requests</returns>
-		public virtual IPagedList<ReturnRequest> SearchReturnRequests(int storeId, int customerId, int orderItemId, ReturnRequestStatus? rs, int pageIndex, int pageSize, int id = 0)
+		public virtual IPagedList<ReturnRequest> SearchReturnRequests(int storeId, int customerId, int orderItemId, ReturnRequestStatus? rs, int pageIndex, int pageSize)
         {
             var query = _returnRequestRepository.Table;
 
@@ -644,16 +643,13 @@ namespace SmartStore.Services.Orders
 			if (orderItemId > 0)
 				query = query.Where(rr => rr.OrderItemId == orderItemId);
 
-			if (id != 0)
-				query = query.Where(rr => rr.Id == id);
-
             if (rs.HasValue)
             {
                 int returnStatusId = (int)rs.Value;
                 query = query.Where(rr => rr.ReturnRequestStatusId == returnStatusId);
             }
 
-            query = query.OrderByDescending(rr => rr.CreatedOnUtc).ThenByDescending(rr => rr.Id);
+            query = query.OrderByDescending(rr => rr.CreatedOnUtc).ThenByDescending(rr=>rr.Id);
 
 			var returnRequests = new PagedList<ReturnRequest>(query, pageIndex, pageSize);
             return returnRequests;

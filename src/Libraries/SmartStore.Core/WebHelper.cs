@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Configuration;
 using System.Web.Hosting;
-using SmartStore.Collections;
 using SmartStore.Core.Data;
 using SmartStore.Core.Domain;
 using SmartStore.Core.Domain.Stores;
@@ -372,29 +371,92 @@ namespace SmartStore.Core
         /// <returns>New url</returns>
         public virtual string ModifyQueryString(string url, string queryStringModification, string anchor)
         {
-			url = url.EmptyNull().ToLower();
-			queryStringModification = queryStringModification.EmptyNull().ToLower();
+            if (url == null)
+                url = string.Empty;
+            url = url.ToLowerInvariant();
 
-			string curAnchor = null;
+            if (queryStringModification == null)
+                queryStringModification = string.Empty;
+            queryStringModification = queryStringModification.ToLowerInvariant();
 
-			var hsIndex = url.LastIndexOf('#');
-			if (hsIndex >= 0)
-			{
-				curAnchor = url.Substring(hsIndex);
-				url = url.Substring(0, hsIndex);
-			}
-			
-			var parts = url.Split(new[] { '?' });
-			var current = new QueryString(parts.Length == 2 ? parts[1] : "");
-			var modify = new QueryString(queryStringModification);
+            if (anchor == null)
+                anchor = string.Empty;
+            anchor = anchor.ToLowerInvariant();
 
-			foreach (var nv in modify.AllKeys)
-			{
-				current.Add(nv, modify[nv], true);
-			}
 
-			var result = "{0}{1}{2}".FormatCurrent(parts[0], current.ToString(), anchor.NullEmpty() == null ? (curAnchor == null ? "" : "#" + curAnchor.ToLower()) : "#" + anchor.ToLower());
-			return result;
+            string str = string.Empty;
+            string str2 = string.Empty;
+            if (url.Contains("#"))
+            {
+                str2 = url.Substring(url.IndexOf("#") + 1);
+                url = url.Substring(0, url.IndexOf("#"));
+            }
+            if (url.Contains("?"))
+            {
+                str = url.Substring(url.IndexOf("?") + 1);
+                url = url.Substring(0, url.IndexOf("?"));
+            }
+            if (!string.IsNullOrEmpty(queryStringModification))
+            {
+                if (!string.IsNullOrEmpty(str))
+                {
+                    var dictionary = new Dictionary<string, string>();
+                    foreach (string str3 in str.Split(new char[] { '&' }))
+                    {
+                        if (!string.IsNullOrEmpty(str3))
+                        {
+                            string[] strArray = str3.Split(new char[] { '=' });
+                            if (strArray.Length == 2)
+                            {
+                                dictionary[strArray[0]] = strArray[1];
+                            }
+                            else
+                            {
+                                dictionary[str3] = null;
+                            }
+                        }
+                    }
+                    foreach (string str4 in queryStringModification.Split(new char[] { '&' }))
+                    {
+                        if (!string.IsNullOrEmpty(str4))
+                        {
+                            string[] strArray2 = str4.Split(new char[] { '=' });
+                            if (strArray2.Length == 2)
+                            {
+                                dictionary[strArray2[0]] = strArray2[1];
+                            }
+                            else
+                            {
+                                dictionary[str4] = null;
+                            }
+                        }
+                    }
+                    var builder = new StringBuilder();
+                    foreach (string str5 in dictionary.Keys)
+                    {
+                        if (builder.Length > 0)
+                        {
+                            builder.Append("&");
+                        }
+                        builder.Append(str5);
+                        if (dictionary[str5] != null)
+                        {
+                            builder.Append("=");
+                            builder.Append(dictionary[str5]);
+                        }
+                    }
+                    str = builder.ToString();
+                }
+                else
+                {
+                    str = queryStringModification;
+                }
+            }
+            if (!string.IsNullOrEmpty(anchor))
+            {
+                str2 = anchor;
+            }
+            return (url + (string.IsNullOrEmpty(str) ? "" : ("?" + str)) + (string.IsNullOrEmpty(str2) ? "" : ("#" + str2))).ToLowerInvariant();
         }
 
         /// <summary>
@@ -405,16 +467,61 @@ namespace SmartStore.Core
         /// <returns>New url</returns>
         public virtual string RemoveQueryString(string url, string queryString)
         {
-			var parts = url.EmptyNull().ToLower().Split(new[] { '?' });
-			var current = new QueryString(parts.Length == 2 ? parts[1] : "");
+            if (url == null)
+                url = string.Empty;
+            url = url.ToLowerInvariant();
 
-			if (current.Count > 0 && queryString.HasValue())
-			{
-				current.Remove(queryString);
-			}
+            if (queryString == null)
+                queryString = string.Empty;
+            queryString = queryString.ToLowerInvariant();
 
-			var result = "{0}{1}".FormatCurrent(parts[0], current.ToString());
-			return result;
+
+            string str = string.Empty;
+            if (url.Contains("?"))
+            {
+                str = url.Substring(url.IndexOf("?") + 1);
+                url = url.Substring(0, url.IndexOf("?"));
+            }
+            if (!string.IsNullOrEmpty(queryString))
+            {
+                if (!string.IsNullOrEmpty(str))
+                {
+                    var dictionary = new Dictionary<string, string>();
+                    foreach (string str3 in str.Split(new char[] { '&' }))
+                    {
+                        if (!string.IsNullOrEmpty(str3))
+                        {
+                            string[] strArray = str3.Split(new char[] { '=' });
+                            if (strArray.Length == 2)
+                            {
+                                dictionary[strArray[0]] = strArray[1];
+                            }
+                            else
+                            {
+                                dictionary[str3] = null;
+                            }
+                        }
+                    }
+                    dictionary.Remove(queryString);
+
+                    var builder = new StringBuilder();
+                    foreach (string str5 in dictionary.Keys)
+                    {
+                        if (builder.Length > 0)
+                        {
+                            builder.Append("&");
+                        }
+                        builder.Append(str5);
+                        if (dictionary[str5] != null)
+                        {
+                            builder.Append("=");
+                            builder.Append(dictionary[str5]);
+                        }
+                    }
+                    str = builder.ToString();
+                }
+            }
+            return (url + (string.IsNullOrEmpty(str) ? "" : ("?" + str)));
         }
         
         /// <summary>

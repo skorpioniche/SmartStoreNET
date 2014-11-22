@@ -26,9 +26,6 @@ namespace SmartStore.Admin.Models.Affiliates
 
         public AddressModel Address { get; set; }
 
-		public int GridPageSize { get; set; }
-		public bool UsernamesEnabled { get; set; }
-
         #region Nested classes
         
         public class AffiliatedOrderModel : EntityModelBase
@@ -54,14 +51,8 @@ namespace SmartStore.Admin.Models.Affiliates
 
         public class AffiliatedCustomerModel : EntityModelBase
         {
-			[SmartResourceDisplayName("Admin.Customers.Customers.Fields.Email")]
-			public string Email { get; set; }
-
-			[SmartResourceDisplayName("Admin.Customers.Customers.Fields.Username")]
-			public string Username { get; set; }
-
-			[SmartResourceDisplayName("Admin.Customers.Customers.Fields.FullName")]
-            public string FullName { get; set; }
+            [SmartResourceDisplayName("Admin.Affiliates.Customers.Name")]
+            public string Name { get; set; }
         }
 
         #endregion

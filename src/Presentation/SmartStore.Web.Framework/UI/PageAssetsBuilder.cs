@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Web;
-using System.Web.WebPages;
-using System.Web.Mvc;
-using System.Web.Optimization;
+using System.Web; // codehint: sm-add
+using System.Web.Mvc; // codehint: sm-add
+using System.Web.Optimization; // codehint: sm-add
 using SmartStore.Core;
 using SmartStore.Core.Domain.Seo;
 using SmartStore.Core.Domain.Themes;
-using SmartStore.Utilities;
-using System.Web.Hosting;
 
 namespace SmartStore.Web.Framework.UI
 {
@@ -30,8 +25,6 @@ namespace SmartStore.Web.Framework.UI
         private readonly Dictionary<ResourceLocation, List<WebAssetDescriptor>> _cssParts;
 		private readonly IStoreContext _storeContext;
         private readonly IBundleBuilder _bundleBuilder;
-
-		private static readonly ConcurrentDictionary<string, string> s_minFiles = new ConcurrentDictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
         public PageAssetsBuilder(
             SeoSettings seoSettings, 
@@ -72,7 +65,7 @@ namespace SmartStore.Web.Framework.UI
             {
                 if (prepend)
                 {
-                    // codehint: sm-edit (MC) > insertion of multiple parts at the beginning
+                    // codehing: sm-edit (MC) > insertion of multiple parts at the beginning
                     // should keep order (and not vice-versa as it was originally)
                     list.InsertRange(0, partsToAdd.Where(IsValidPart));
                 }
@@ -192,7 +185,7 @@ namespace SmartStore.Web.Framework.UI
                 _scriptParts.Add(location, new List<WebAssetDescriptor>());
 
             var descriptors = parts.Select(x => new WebAssetDescriptor { 
-                ExcludeFromBundling = excludeFromBundling || !x.StartsWith("~") || BundleTable.Bundles.GetBundleFor(x) != null, 
+                ExcludeFromBundling = excludeFromBundling || !x.StartsWith("~"), 
                 Part = x });
 
             AddPartsCore(_scriptParts[location], descriptors, append);
@@ -229,7 +222,7 @@ namespace SmartStore.Web.Framework.UI
             {
                 foreach (var path in nonBundledParts)
                 {
-					sb.AppendFormat("<script src=\"{0}\" type=\"text/javascript\"></script>", Scripts.Url(TryFindMinFile(path)).ToString());
+                    sb.AppendFormat("<script src=\"{0}\" type=\"text/javascript\"></script>", urlHelper.Content(path));
                     sb.Append(Environment.NewLine);
                 }
             }
@@ -239,51 +232,6 @@ namespace SmartStore.Web.Framework.UI
             return sb.ToString();
         }
 
-		private string TryFindMinFile(string path)
-		{
-			if (_httpContext.IsDebuggingEnabled)
-			{
-				// return path as is in debug mode
-				return path;
-			}
-
-			return s_minFiles.GetOrAdd(path, key => 
-			{
-				try
-				{
-					if (!_httpContext.Request.IsUrlLocalToHost(key))
-					{
-						// no need to look for external files
-						return key;
-					}
-
-					if (BundleTable.Bundles.GetBundleFor(key) != null)
-					{
-						// no need to seek min files for real bundles.
-						return key;
-					}
-
-					var extension = Path.GetExtension(key);
-					if (key.EndsWith(".min" + extension, StringComparison.InvariantCultureIgnoreCase))
-					{
-						// is already a debug file, get out!
-						return key;
-					}
-
-					var minPath = "{0}.min{1}".FormatInvariant(key.Substring(0, key.Length - extension.Length), extension);
-					if (HostingEnvironment.VirtualPathProvider.FileExists(minPath))
-					{
-						return minPath;
-					}
-					return key;
-				}
-				catch 
-				{
-					return key;
-				}
-			});
-		}
-
 
         public void AddCssFileParts(ResourceLocation location, IEnumerable<string> parts, bool excludeFromBundling = false, bool append = false)
         {
@@ -292,7 +240,7 @@ namespace SmartStore.Web.Framework.UI
 
             var descriptors = parts.Select(x => new WebAssetDescriptor
             {
-				ExcludeFromBundling = excludeFromBundling || !x.StartsWith("~") || BundleTable.Bundles.GetBundleFor(x) != null,
+                ExcludeFromBundling = excludeFromBundling || !x.StartsWith("~"),
                 Part = x
             });
 
@@ -331,7 +279,7 @@ namespace SmartStore.Web.Framework.UI
             {
                 foreach (var path in nonBundledParts)
                 {
-					sb.AppendFormat("<link href=\"{0}\" rel=\"stylesheet\" type=\"text/css\" />", Styles.Url(TryFindMinFile(path)).ToString());
+                    sb.AppendFormat("<link href=\"{0}\" rel=\"stylesheet\" type=\"text/css\" />", urlHelper.Content(path));
                     sb.Append(Environment.NewLine);
                 }
             }

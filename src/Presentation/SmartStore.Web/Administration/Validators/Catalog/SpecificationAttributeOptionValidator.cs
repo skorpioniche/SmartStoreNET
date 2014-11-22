@@ -4,7 +4,7 @@ using SmartStore.Services.Localization;
 
 namespace SmartStore.Admin.Validators.Catalog
 {
-	public partial class SpecificationAttributeOptionValidator : AbstractValidator<SpecificationAttributeOptionModel>
+    public class SpecificationAttributeOptionValidator : AbstractValidator<SpecificationAttributeOptionModel>
     {
         public SpecificationAttributeOptionValidator(ILocalizationService localizationService)
         {

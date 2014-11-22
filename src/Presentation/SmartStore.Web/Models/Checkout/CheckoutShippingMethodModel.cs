@@ -21,10 +21,9 @@ namespace SmartStore.Web.Models.Checkout
         {
             public string ShippingRateComputationMethodSystemName { get; set; }
             public string Name { get; set; }
-            public string BrandUrl { get; set; }
+            public string BrandUrl { get; set; } // codehint: sm-add
             public string Description { get; set; }
             public string Fee { get; set; }
-			public decimal FeeRaw { get; set; }
             public bool Selected { get; set; }
         }
         #endregion

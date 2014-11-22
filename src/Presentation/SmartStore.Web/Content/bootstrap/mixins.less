@@ -9,7 +9,7 @@
 // Clearfix
 // --------
 // For clearing floats like a boss h5bp.com/q
-.clearfix {
+.clearfix() { // codehint: sm-edit (added parens, otherwise this class gets cluttered all over css)
   *zoom: 1;
   &:before,
   &:after {
@@ -94,7 +94,7 @@
 // Text overflow
 // -------------------------
 // Requires inline-block or block for proper styling
-.text-overflow {
+.text-overflow() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -103,7 +103,7 @@
 // CSS image replacement
 // -------------------------
 // Source: https://github.com/h5bp/html5-boilerplate/commit/aa0396eae757
-.hide-text {
+.hide-text() { // codehint: sm-edit (added parens, otherwise this class gets cluttered all over css)
   font: 0/0 a;
   color: transparent;
   text-shadow: none;
@@ -401,6 +401,7 @@
 // Gradient Bar Colors for buttons and alerts
 .gradientBar(@primaryColor, @secondaryColor, @textColor: #fff, @textShadow: 0 -1px 0 rgba(0,0,0,.25)) {
   color: @textColor;
+  text-shadow: @textShadow;
   #gradient > .vertical(@primaryColor, @secondaryColor);
   border-color: @secondaryColor @secondaryColor darken(@secondaryColor, 15%);
   border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fadein(rgba(0,0,0,.1), 15%);
@@ -492,47 +493,17 @@
 
 // Button backgrounds
 // ------------------
-.buttonBackground(@startColor, @endColor, @textColor: #fff, @textShadow: none) {
+.buttonBackground(@startColor, @endColor, @textColor: #fff, @textShadow: 0 -1px 0 rgba(0,0,0,.25)) {
+  // gradientBar will set the background to a pleasing blend of these, to support IE<=9
+  .gradientBar(@startColor, @endColor, @textColor, @textShadow);
+  *background-color: @endColor; /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+  .reset-filter();
 
-  .colors() when (luma(@startColor) > 20) {
-    // dark text on light background (btn)
-	color: #444; //@textColor;
-	border-color: rgba(0, 0, 0, 0.15);
-	&:hover, &:active, &.active {
-	  color: #222;
-	  border-color: rgba(0, 0, 0, 0.2);
-	}
-	&:active, &.active {
-	  border-color: rgba(0, 0, 0, 0.25);
-	}
-  }
-
-  .colors() when (luma(@startColor) <= 80) {
-	// light text on dark background (btn-primary, -warning etc.)
-	color: #fff;
-	color: rgba(255,255,255, 1);
-	border-color: rgba(0, 0, 0, 0.1);
-	&:hover, &:active, &.active {
-	  color: #fff;
-	  border-color: rgba(0, 0, 0, 0.15);
-	}
-	&:active, &.active {
-	  border-color: rgba(0, 0, 0, 0.2);
-	}
-  }
-
-  text-shadow: none;
-  background-color: @startColor;
-  *background-color: @endColor;
-  border-color: @endColor;
-  *border-color: darken(@endColor, 5%);
-  
-  &:hover {
+  // in these cases the gradient won't cover the background, so we override
+  &:hover, &:active, &.active, &.disabled, &[disabled] {
+    color: @textColor;
     background-color: @endColor;
-  }
-
-  &:active, &.active {
-    background-color: darken(@endColor, 5%);
+    *background-color: darken(@endColor, 5%);
   }
 
   // IE 7 + 8 can't handle box-shadow to show active, so we darken a bit ourselves
@@ -540,8 +511,6 @@
   &.active {
     background-color: darken(@endColor, 10%) e("\9");
   }
-
-  .colors();
 }
 
 // Navbar vertical align

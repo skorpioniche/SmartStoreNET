@@ -50,8 +50,7 @@ namespace SmartStore.Web.Framework
         private Language _cachedLanguage;
         private Customer _cachedCustomer;
         private Currency _cachedCurrency;
-        private Customer _originalCustomerIfImpersonated;
-		private bool? _isAdmin;
+        private Customer _originalCustomerIfImpersonated; 
 
         public WebWorkContext(Func<string, ICacheManager> cacheManager,
             HttpContextBase httpContext,
@@ -277,7 +276,7 @@ namespace SmartStore.Web.Framework
                     if (_httpContext != null && _httpContext.Request != null && _httpContext.Request.UserLanguages != null)
                     {
                         var userLangs = _httpContext.Request.UserLanguages.Select(x => x.Split(new[] { ';' }, 2, StringSplitOptions.RemoveEmptyEntries)[0]);
-                        if (userLangs.Any())
+                        if (userLangs.HasItems())
                         {
                             foreach (var culture in userLangs)
                             {
@@ -463,7 +462,7 @@ namespace SmartStore.Web.Framework
             {
                 return _cachedTaxDisplayType.Value;
             }
-			
+
             int? taxDisplayType = null;
 
             if (_taxSettings.AllowCustomersToSelectTaxDisplayType && customer != null)
@@ -505,23 +504,10 @@ namespace SmartStore.Web.Framework
             return _cachedTaxDisplayType.Value;
         }
 
-
-		public bool IsAdmin 
-		{
-			get
-			{
-				if (!_isAdmin.HasValue)
-				{
-					_isAdmin = _httpContext.Request.IsAdminArea();
-				}
-
-				return _isAdmin.Value;
-			}
-			set
-			{
-				_isAdmin = value;
-			}
-		}
+		/// <summary>
+		/// Get or set value indicating whether we're in admin area
+		/// </summary>
+		public bool IsAdmin { get; set; }
 
         public bool IsPublishedLanguage(string seoCode, int storeId = 0)
         {

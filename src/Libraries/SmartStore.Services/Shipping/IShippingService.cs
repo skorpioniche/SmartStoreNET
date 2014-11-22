@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using SmartStore.Core.Domain.Common;
 using SmartStore.Core.Domain.Orders;
 using SmartStore.Core.Domain.Shipping;
-using SmartStore.Core.Plugins;
 
 namespace SmartStore.Services.Shipping
 {
@@ -16,21 +15,21 @@ namespace SmartStore.Services.Shipping
         /// </summary>
 		/// <param name="storeId">Load records allows only in specified store; pass 0 to load all records</param>
         /// <returns>Shipping rate computation methods</returns>
-		IEnumerable<Provider<IShippingRateComputationMethod>> LoadActiveShippingRateComputationMethods(int storeId = 0);
+		IList<IShippingRateComputationMethod> LoadActiveShippingRateComputationMethods(int storeId = 0);
 
         /// <summary>
         /// Load shipping rate computation method by system name
         /// </summary>
         /// <param name="systemName">System name</param>
         /// <returns>Found Shipping rate computation method</returns>
-		Provider<IShippingRateComputationMethod> LoadShippingRateComputationMethodBySystemName(string systemName, int storeId = 0);
+        IShippingRateComputationMethod LoadShippingRateComputationMethodBySystemName(string systemName);
 
         /// <summary>
         /// Load all shipping rate computation methods
         /// </summary>
 		/// <param name="storeId">Load records allows only in specified store; pass 0 to load all records</param>
         /// <returns>Shipping rate computation methods</returns>
-		IEnumerable<Provider<IShippingRateComputationMethod>> LoadAllShippingRateComputationMethods(int storeId = 0);
+		IList<IShippingRateComputationMethod> LoadAllShippingRateComputationMethods(int storeId = 0);
 
 
 

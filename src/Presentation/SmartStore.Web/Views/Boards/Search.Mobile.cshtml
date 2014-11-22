@@ -1,6 +1,7 @@
 ﻿@model SearchModel
 @using SmartStore.Core.Domain.Forums;
 @using SmartStore.Web;
+@using SmartStore.Web.Extensions;
 @using SmartStore.Web.Models;
 @using SmartStore.Web.Models.Boards;
 @using SmartStore.Web.Models.Common;
@@ -17,7 +18,7 @@
             <h1>@T("Forum.Search")</h1>
         </div>
         <div class="search-input">
-            @using (Html.BeginRouteForm("BoardSearch", FormMethod.Get))
+            @using (Html.BeginRouteForm("Search", FormMethod.Get))
             {
                 <label for="searchterms" class="ui-hidden-accessible">@T("Forum.SearchButton"):</label>
                 <input type="search" name="searchterms" id="searchterms" value="@Model.SearchTerms"  />
@@ -44,8 +45,8 @@
 
             var pager = Html.SmartStore().Pager(Model.TopicPageIndex, Model.TopicPageSize, Model.TopicTotalRecords)
                                         .Name("paginator")
-										.Alignment(PagerAlignment.Right)
-										.Route("BoardSearch", new ForumSearchRouteValues { adv = adv, searchterms = searchterms, forumId = forumId, within = within, limitDays = limitDays });
+                                        .Alignment(PagerAlignment.Right)
+                                        .Route("Search", new ForumSearchRouteValues { adv = adv, searchterms = searchterms, forumId = forumId, within = within, limitDays = limitDays });
         }
         @pager
 

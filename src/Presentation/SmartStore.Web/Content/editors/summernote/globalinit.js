@@ -9,7 +9,7 @@ var summernote_image_upload_url;
 		codemirror: {
 			theme: 'default'
 		},
-		height: 300,
+		height: 400,
 		onImageUpload: function (files, editor, welEditable) {
 			sendFile(files[0], editor, welEditable);
 		}

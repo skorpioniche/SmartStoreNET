@@ -42,7 +42,8 @@ namespace SmartStore.Admin.Controllers
 			return View();
 		}
 
-		public ActionResult AllStores(string label, int selectedId = 0)
+		/// <remarks>codehint: sm-add</remarks>
+		public ActionResult AllStores(string label, int selectedId)
 		{
 			var stores = _storeService.GetAllStores();
 

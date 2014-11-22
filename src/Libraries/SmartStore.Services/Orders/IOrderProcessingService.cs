@@ -22,7 +22,7 @@ namespace SmartStore.Services.Orders
         /// </summary>
         /// <param name="processPaymentRequest">Process payment request</param>
         /// <returns>Place order result</returns>
-        PlaceOrderResult PlaceOrder(ProcessPaymentRequest processPaymentRequest, Dictionary<string, string> extraData);
+        PlaceOrderResult PlaceOrder(ProcessPaymentRequest processPaymentRequest);
 
         /// <summary>
         /// Deletes an order

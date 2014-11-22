@@ -63,7 +63,7 @@ END
 GO
 
 
-CREATE PROCEDURE [dbo].[ProductLoadAllPaged]
+CREATE PROCEDURE [ProductLoadAllPaged]
 (
 	@CategoryIds		nvarchar(MAX) = null,	--a list of category IDs (comma-separated list). e.g. 1,2,3
 	@ManufacturerId		int = 0,
@@ -676,7 +676,7 @@ END
 GO
 
 
-CREATE PROCEDURE [dbo].[FullText_IsSupported]
+CREATE PROCEDURE [FullText_IsSupported]
 AS
 BEGIN	
 	EXEC('
@@ -693,7 +693,7 @@ GO
 
 
 
-CREATE PROCEDURE [dbo].[FullText_Enable]
+CREATE PROCEDURE [FullText_Enable]
 AS
 BEGIN
 	--create catalog
@@ -731,7 +731,7 @@ GO
 
 
 
-CREATE PROCEDURE [dbo].[FullText_Disable]
+CREATE PROCEDURE [FullText_Disable]
 AS
 BEGIN
 	EXEC('

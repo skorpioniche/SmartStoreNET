@@ -9,7 +9,7 @@ namespace SmartStore.Data.Migrations
 	{
 		public MigrationsConfiguration()
 		{
-			AutomaticMigrationsEnabled = false;
+			AutomaticMigrationsEnabled = true;
 			ContextKey = "SmartStore.Core";
 		}
 

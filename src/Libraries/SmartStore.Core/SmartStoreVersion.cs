@@ -18,8 +18,7 @@ namespace SmartStore.Core
             //       a greater minor version.
             new Version("1.2"),
             new Version("1.2.1"), // MC: had to be :-(
-            new Version("2.0"),
-			new Version("2.1")
+            new Version("2.0")
         };
 
         static SmartStoreVersion()
@@ -56,11 +55,12 @@ namespace SmartStore.Core
             }
         }
 
-        public static Version Version
+        internal static Version FullVersion
         {
             get
             {
-                return s_infoVersion;
+                //return s_version;
+                return s_infoVersion; // MC: (???)
             }
         }
 

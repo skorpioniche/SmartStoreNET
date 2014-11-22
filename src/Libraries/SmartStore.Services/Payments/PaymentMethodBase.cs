@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Routing;
 using SmartStore.Core.Domain.Orders;
-using SmartStore.Core.Localization;
 using SmartStore.Core.Plugins;
 
 namespace SmartStore.Services.Payments
@@ -12,15 +11,8 @@ namespace SmartStore.Services.Payments
 	/// <summary>
 	/// Base class for payment methods
 	/// </summary>
-	public abstract class PaymentMethodBase : IPaymentMethod
+	public abstract class PaymentMethodBase : BasePlugin, IPaymentMethod
 	{
-
-		protected PaymentMethodBase()
-		{
-			T = NullLocalizer.Instance;
-		}
-
-		public Localizer T { get; set; }
 
 		#region Methods
 
@@ -67,9 +59,7 @@ namespace SmartStore.Services.Payments
 		/// <returns>Capture payment result</returns>
 		public virtual CapturePaymentResult Capture(CapturePaymentRequest capturePaymentRequest)
 		{
-			var result = new CapturePaymentResult();
-			result.AddError(T("Common.Payment.NoCaptureSupport"));
-			return result;
+			throw Error.NotSupported();
 		}
 
 		/// <summary>
@@ -79,9 +69,7 @@ namespace SmartStore.Services.Payments
 		/// <returns>Result</returns>
 		public virtual RefundPaymentResult Refund(RefundPaymentRequest refundPaymentRequest)
 		{
-			var result = new RefundPaymentResult();
-			result.AddError(T("Common.Payment.NoRefundSupport"));
-			return result;
+			throw Error.NotSupported();
 		}
 
 		/// <summary>
@@ -91,9 +79,7 @@ namespace SmartStore.Services.Payments
 		/// <returns>Result</returns>
 		public virtual VoidPaymentResult Void(VoidPaymentRequest voidPaymentRequest)
 		{
-			var result = new VoidPaymentResult();
-			result.AddError(T("Common.Payment.NoVoidSupport"));
-			return result;
+			throw Error.NotSupported();
 		}
 
 		/// <summary>
@@ -103,9 +89,7 @@ namespace SmartStore.Services.Payments
 		/// <returns>Process payment result</returns>
 		public virtual ProcessPaymentResult ProcessRecurringPayment(ProcessPaymentRequest processPaymentRequest)
 		{
-			var result = new ProcessPaymentResult();
-			result.AddError(T("Common.Payment.NoRecurringPaymentSupport"));
-			return result;
+			throw Error.NotSupported();
 		}
 
 		/// <summary>
@@ -115,9 +99,7 @@ namespace SmartStore.Services.Payments
 		/// <returns>Result</returns>
 		public virtual CancelRecurringPaymentResult CancelRecurringPayment(CancelRecurringPaymentRequest cancelPaymentRequest)
 		{
-			var result = new CancelRecurringPaymentResult();
-			result.AddError(T("Common.Payment.NoRecurringPaymentSupport"));
-			return result;
+			throw Error.NotSupported();
 		}
 
 		/// <summary>
@@ -137,6 +119,16 @@ namespace SmartStore.Services.Payments
 		/// <param name="controllerName">Controller name</param>
 		/// <param name="routeValues">Route values</param>
 		public abstract void GetConfigurationRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues);
+		public RouteInfo GetConfigurationRoute()
+		{
+			string action;
+			string controller;
+			RouteValueDictionary routeValues;
+
+			this.GetConfigurationRoute(out action, out controller, out routeValues);
+
+			return new RouteInfo(action, controller, routeValues);
+		}
 
 		/// <summary>
 		/// Gets a route for payment info
@@ -145,6 +137,16 @@ namespace SmartStore.Services.Payments
 		/// <param name="controllerName">Controller name</param>
 		/// <param name="routeValues">Route values</param>
 		public abstract void GetPaymentInfoRoute(out string actionName, out string controllerName, out RouteValueDictionary routeValues);
+		public RouteInfo GetPaymentInfoRoute()
+		{
+			string action;
+			string controller;
+			RouteValueDictionary routeValues;
+
+			this.GetPaymentInfoRoute(out action, out controller, out routeValues);
+
+			return new RouteInfo(action, controller, routeValues);
+		}
 
 		/// <summary>
 		/// Gets a route for the payment info handler controller action
@@ -165,18 +167,6 @@ namespace SmartStore.Services.Payments
 		#endregion
 
 		#region Properties
-
-		/// <summary>
-		/// Gets a value indicating whether the payment method requires user input
-		/// before proceeding (e.g. CreditCard, DirectDebit etc.)
-		/// </summary>
-		public virtual bool RequiresInteraction
-		{
-			get
-			{
-				return false;
-			}
-		}
 
 		/// <summary>
 		/// Gets a value indicating whether capture is supported
