@@ -1032,7 +1032,15 @@ namespace SmartStore.Web.Controllers
                 "/viewpm",
                 "/wishlist",
                 "/productaskquestion",
-                "/productemailafriend"
+                "/productemailafriend",
+                "/*?orderby=*",
+                "/*?pagesize=*",
+                "/login",
+                "/register",
+                "/recentlyviewedproducts",
+                "/productreviews*",
+                "/newproducts",
+                "/by/30"
             };
 
 
@@ -1061,6 +1069,11 @@ namespace SmartStore.Web.Controllers
                 sb.AppendFormat("Disallow: {0}", disallow);
                 sb.Append(newLine);
             }
+
+            sb.Append(newLine);
+            sb.Append("Host: http://shop4you.by");
+            sb.Append(newLine);
+            sb.Append("Sitemap: http://shop4you.by/sitemapSEO");
 
             Response.ContentType = "text/plain";
             Response.Write(sb.ToString());

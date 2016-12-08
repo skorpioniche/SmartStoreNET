@@ -26,7 +26,7 @@
         @Html.Action("PopularProductTags", "Catalog", new { area = "" })
         @Html.Widget("left_side_column_after_tags")
 
-        @Html.Action("InfoBlock", "Common", new { area = "" })
+        @*@Html.Action("InfoBlock", "Common", new { area = "" })*@
         @Html.Widget("left_side_column_after_info")
 
         @Html.Action("PollBlock", "Poll", new { systemKeyword = "LeftColumnPoll", area = "" })
@@ -57,8 +57,9 @@
         @Html.Action("RecentlyViewedProductsBlock", "Catalog", new { area = "" })
         @Html.Widget("right_side_column_after_recentlyviewed")             
         @Html.Action("PollBlock", "Poll", new { systemKeyword = "RightColumnPoll", area = "" })
-        @Html.Widget("right_side_column_after_poll")   
-
+        @Html.Widget("right_side_column_after_poll")
+        
         @Html.Widget("right_side_column_after")
+        @Html.Action("InfoBlock", "Common", new { area = "" })
     }
 </div>
